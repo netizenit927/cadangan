@@ -166,20 +166,11 @@
           unitsList = Object.keys(data);
         }
 
-        async function onLogin() {
-          errorMsg.classList.add("hidden");
-          setStatus("Mengambil data...", false);
-          try {
-            await fetchUnits();
-            modal.classList.add("hidden");
-            app.classList.remove("hidden");
-            logoutBtn.classList.remove("hidden");
-            renderHome();
-          } catch (err) {
-            errorMsg.classList.remove("hidden");
-            setStatus(err.message || "Login gagal.", true);
-          }
-        }
+      async function onLogin() {
+        errorMsg.classList.add("hidden");
+        setStatus("Mengalihkan ke data...", false);
+        window.location.href = "AuthData.html";
+      }
 
         function onLogout() {
           app.classList.add("hidden");
