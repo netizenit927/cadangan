@@ -102,31 +102,45 @@
         const logoutBtn = document.getElementById("logoutBtn");
         const statusMsg = document.getElementById("statusMsg");
 
+        /* =====================
+           HELPER
+        ===================== */
+        function formatUnitName(text) {
+          return text
+            .replace(/([a-z])([A-Z])/g, "$1 $2")
+            .replace(/([a-zA-Z])(\d)/g, "$1 $2");
+        }
+
+        function setStatus(message, isError) {
+          statusMsg.textContent = message;
+          statusMsg.classList.toggle("text-red-600", !!isError);
+          statusMsg.classList.toggle("bg-red-50", !!isError);
+          statusMsg.classList.toggle("border-red-200", !!isError);
+          statusMsg.classList.toggle("text-gray-600", !isError);
+          statusMsg.classList.toggle("bg-gray-50", !isError);
+          statusMsg.classList.toggle("border-gray-200", !isError);
+        }
+
         const supabaseUrl = "REPLACE_WITH_SUPABASE_URL";
         const supabaseAnonKey = "REPLACE_WITH_SUPABASE_ANON_KEY";
+
+        if (!window.supabase) {
+          setStatus("Supabase SDK gagal dimuat. Cek koneksi/CDN.", true);
+          return;
+        }
+
+        if (
+          supabaseUrl.startsWith("REPLACE_") ||
+          supabaseAnonKey.startsWith("REPLACE_")
+        ) {
+          setStatus("Supabase URL/Anon Key belum diisi.", true);
+          return;
+        }
+
         const supabase = window.supabase.createClient(
           supabaseUrl,
           supabaseAnonKey,
         );
-
-      /* =====================
-         HELPER
-      ===================== */
-      function formatUnitName(text) {
-        return text
-          .replace(/([a-z])([A-Z])/g, "$1 $2")
-          .replace(/([a-zA-Z])(\d)/g, "$1 $2");
-      }
-
-      function setStatus(message, isError) {
-        statusMsg.textContent = message;
-        statusMsg.classList.toggle("text-red-600", !!isError);
-        statusMsg.classList.toggle("bg-red-50", !!isError);
-        statusMsg.classList.toggle("border-red-200", !!isError);
-        statusMsg.classList.toggle("text-gray-600", !isError);
-        statusMsg.classList.toggle("bg-gray-50", !isError);
-        statusMsg.classList.toggle("border-gray-200", !isError);
-      }
 
       async function fetchUnits() {
         const sessionRes = await supabase.auth.getSession();
