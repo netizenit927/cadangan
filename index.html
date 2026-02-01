@@ -49,6 +49,19 @@
         </div>
 
         <div class="space-y-4">
+          <input
+            id="email"
+            type="email"
+            placeholder="Email"
+            class="w-full px-4 py-2.5 rounded-lg border"
+          />
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            class="w-full px-4 py-2.5 rounded-lg border"
+          />
+
           <div
             id="statusMsg"
             class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
@@ -73,7 +86,7 @@
       </div>
     </div>
 
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       /* =====================
          DATA
@@ -87,6 +100,10 @@
       const loginBtn = document.getElementById("loginBtn");
       const logoutBtn = document.getElementById("logoutBtn");
       const statusMsg = document.getElementById("statusMsg");
+
+      const supabaseUrl = "REPLACE_WITH_SUPABASE_URL";
+      const supabaseAnonKey = "REPLACE_WITH_SUPABASE_ANON_KEY";
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
       /* =====================
          HELPER
@@ -108,24 +125,22 @@
       }
 
       async function fetchUnits() {
-        const user = window.netlifyIdentity.currentUser();
-        if (!user) {
+        const sessionRes = await supabase.auth.getSession();
+        if (!sessionRes.data.session) {
           throw new Error("Belum login.");
         }
 
-        const token = user.token.access_token;
-        const res = await fetch("/.netlify/functions/units", {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
+        const { data: units, error } = await supabase
+          .from("units")
+          .select("id,name,forms:forms(id,name,link,sort_order)")
+          .order("name", { ascending: true })
+          .order("sort_order", { foreignTable: "forms", ascending: true });
 
-        if (!res.ok) {
-          throw new Error("Gagal mengambil data.");
+        if (error) {
+          throw new Error(error.message || "Gagal mengambil data.");
         }
 
-        const payload = await res.json();
-        data = payload.units.reduce((acc, unit) => {
+        data = (units || []).reduce((acc, unit) => {
           acc[unit.name] = unit.forms || [];
           return acc;
         }, {});
@@ -267,31 +282,57 @@
         `;
       }
 
-      loginBtn.addEventListener("click", () => {
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.open("login");
-        }
-      });
+      loginBtn.addEventListener("click", async () => {
+        errorMsg.classList.add("hidden");
+        setStatus("Login...", false);
 
-      logoutBtn.addEventListener("click", () => {
-        if (window.netlifyIdentity) {
-          window.netlifyIdentity.logout();
-        }
-      });
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
 
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("login", () => {
-          window.netlifyIdentity.close();
-          onLogin();
+        if (!email || !password) {
+          errorMsg.classList.remove("hidden");
+          setStatus("Email dan password wajib diisi.", true);
+          return;
+        }
+
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
-        window.netlifyIdentity.on("logout", onLogout);
-        window.netlifyIdentity.init();
 
-        if (window.netlifyIdentity.currentUser()) {
+        if (error) {
+          errorMsg.classList.remove("hidden");
+          setStatus(error.message || "Login gagal.", true);
+          return;
+        }
+
+        onLogin();
+      });
+
+      logoutBtn.addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        onLogout();
+      });
+
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          onLogin();
+        } else {
+          onLogout();
+        }
+      });
+
+      (async () => {
+        const sessionRes = await supabase.auth.getSession();
+        if (sessionRes.data.session) {
           onLogin();
         }
-      }
+      })();
     </script>
+    
   </body>
 </html>
+
+
+
 
