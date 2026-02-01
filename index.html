@@ -88,22 +88,26 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      /* =====================
-         DATA
-      ===================== */
-      let data = {};
-      let unitsList = [];
+      (function () {
+        /* =====================
+           DATA
+        ===================== */
+        let data = {};
+        let unitsList = [];
 
-      const app = document.getElementById("app");
-      const modal = document.getElementById("loginModal");
-      const errorMsg = document.getElementById("errorMsg");
-      const loginBtn = document.getElementById("loginBtn");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const statusMsg = document.getElementById("statusMsg");
+        const app = document.getElementById("app");
+        const modal = document.getElementById("loginModal");
+        const errorMsg = document.getElementById("errorMsg");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const statusMsg = document.getElementById("statusMsg");
 
-      const supabaseUrl = "REPLACE_WITH_SUPABASE_URL";
-      const supabaseAnonKey = "REPLACE_WITH_SUPABASE_ANON_KEY";
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        const supabaseUrl = "REPLACE_WITH_SUPABASE_URL";
+        const supabaseAnonKey = "REPLACE_WITH_SUPABASE_ANON_KEY";
+        const supabase = window.supabase.createClient(
+          supabaseUrl,
+          supabaseAnonKey,
+        );
 
       /* =====================
          HELPER
@@ -322,11 +326,12 @@
         }
       });
 
-      (async () => {
-        const sessionRes = await supabase.auth.getSession();
-        if (sessionRes.data.session) {
-          onLogin();
-        }
+        (async () => {
+          const sessionRes = await supabase.auth.getSession();
+          if (sessionRes.data.session) {
+            onLogin();
+          }
+        })();
       })();
     </script>
     
