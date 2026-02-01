@@ -1,8 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <title>TRINITRIX – RS Premier Jatinegara</title>
+    <title>TRINITRIX - RS Premier Jatinegara</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -17,6 +17,14 @@
             RS Premier Jatinegara
           </div>
           <div class="text-xs text-gray-500 tracking-wide">TRINITRIX</div>
+        </div>
+        <div class="ml-auto">
+          <button
+            id="logoutBtn"
+            class="hidden px-4 py-2 rounded-lg border bg-white text-sm hover:bg-gray-100 transition"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </nav>
@@ -41,27 +49,22 @@
         </div>
 
         <div class="space-y-4">
-          <input
-            id="username"
-            placeholder="Username"
-            class="w-full px-4 py-2.5 rounded-lg border"
-          />
-          <input
-            id="password"
-            type="password"
-            placeholder="Password"
-            class="w-full px-4 py-2.5 rounded-lg border"
-          />
+          <div
+            id="statusMsg"
+            class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
+          >
+            Silakan login untuk melanjutkan.
+          </div>
 
           <div
             id="errorMsg"
             class="hidden text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
           >
-            Username atau password salah
+            Login gagal. Coba lagi.
           </div>
 
           <button
-            onclick="login()"
+            id="loginBtn"
             class="w-full py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
           >
             Login
@@ -70,430 +73,85 @@
       </div>
     </div>
 
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script>
       /* =====================
          DATA
       ===================== */
-      const data = {
-        InstalasiGawatDarurat: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMFFKVE1YOFcwVVU5RDhZM0FTMkZGMjVIMC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREREM0hVWkozSEVaR0ZJS0VBMDBLMEhFUy4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Kulkas",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URDQ2RlJFMVZTTU5HSTlLMUYwSTRNVE0yUS4u&route=shorturl",
-          },
-          {
-            name: "4 - Kelembapan R. Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQlI5NVdETDhUTUhHRlY0VlhJRzFRVDkyNy4u&route=shorturl",
-          },
-          {
-            name: "5 - Suhu CSSD Supply Cabinet",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URTY3SERUUVoyVVJOSlNJM1lBWVZGNVMyRS4u&route=shorturl",
-          },
-          {
-            name: "6 - Kelembapan CSSD Supply Cabinet",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNzJVNVk4SDlNWlUxNUpTMDVFOVlRRTIyQy4u&route=shorturl",
-          },
-          {
-            name: "7 - Suhu R. Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNVg4NDVTREZRVDBNSVFVSVhGUTBRSTdTMC4u&route=shorturl",
-          },
-          {
-            name: "8 - Tekanan Udara R. Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM0gzSENWVVRFVFdQWlpRMEdNNEJGMkkxTy4u&route=shorturl",
-          },
-        ],
-        PerawatanAnak: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQTdHUFRKVlFFUVlMNVdFQjJLR1JERkZVRC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQkZNNk1PV1NXNDM3UVVOWFVHWTY3VU1ZOC4u&route=shorturl",
-          },
-          {
-            name: "3 - Kelembapan Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMDVNNkNOR0gzS1pOWFRERDNEUkFQVzQ2Qy4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQUlSSDQyMDhOTkwzTEI1RzdBUTdYU1JKRi4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembapan Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQ1pKWjRPTFM3NzIzWUxNODdMWTZMTlcwUi4u&route=shorturl",
-          },
-          {
-            name: "6 - Suhu Ruang Isolasi",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMURUVVdYUFgzSzBSWDNGUFBJU0FCS0xTQi4u&route=shorturl",
-          },
-          {
-            name: "7 - Tekanan Udara Ruang Isolasi",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMUVNREpSRDZEMlRVWTJaRDZTS1hSM05BWi4u&route=shorturl",
-          },
-          {
-            name: "8 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMkdKUkkyWkhSSUsxT04xUE8yTzZTSkM0WS4u&route=shorturl",
-          },
-        ],
-        PICUNICUPerinatologi: [
-          {
-            name: "1 - Suhu Ruang Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UN0UzQU1HMzhJTzNWMkdSU0RISTdJVjRDTy4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruang Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM1hYMk8wUkk5TFhIQlBXODZJUDFSODJEUC4u&route=shorturl",
-          },
-          {
-            name: "3 - Kelembapan Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URFVETEZUVlFCM1JPUks2UVZSNjZSWjFSOS4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM09LMkJSOURLVUFSS05DWlU5TUUwWU5BNC4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembapan Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UODQ1U1NZOUoyQjdSMVoyM01YT1JKVDU5Qy4u&route=shorturl",
-          },
-          {
-            name: "6 - Tekanan Udara Ruangan PICU/NICU",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNVQzUkJNOEdXMFVDV1YyODc5SVhTT1NDWC4u&route=shorturl",
-          },
-          {
-            name: "7 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNlpJRExUTFA3TlhSNjhYM0RRWTNPRjNFSC4u&route=shorturl",
-          },
-          {
-            name: "8 - Suhu Lemari Es Penyimpanan ASI",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URjUzRVFCMElFQlpTWkYyWllONUlGOTRSNS4u&route=shorturl",
-          },
-          {
-            name: "9 - Suhu Freezer Penyimpanan ASI",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNEtVNU9WME5MVlUwUDVIWEJVNDNHQldQNi4u&route=shorturl",
-          },
-        ],
-        StrokeUnit: [
-          {
-            name: "1 - Suhu Ruangan Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQ1lGTjFIQk5MUDU1ME1TSVhVNzFFQjFSMC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREdZNlNFSElWMzgwSlZURU1GR0k5TUUxMy4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOVZRMFkwN043U1U4T0wwSUU1VlM5NElBTi4u&route=shorturl",
-          },
-          {
-            name: "4 - Kelembapan Ruangan Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM0NXSEk5RTZGRFRMWFFaMUNETTlPSjFNMy4u&route=shorturl",
-          },
-          {
-            name: "5 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNVZQNFlTT01PN1ZKQkg1Q0dCTldIUUtZNS4u&route=shorturl",
-          },
-          {
-            name: "6 - Kelembapan Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UN0szRzFIQUpRWUgzVzBNNFhZNTJSVExFMC4u&route=shorturl",
-          },
-        ],
-        KamarBayi: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URVRYVFowMUUyWlFRNTBTMDJLS1QwOFlENS4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMVdVMTZWTVBaWjNKVzVTSTc0VldMUzhaSi4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQUlETDE3NlkyMFpYQUxHWFBJQk04ODBPVi4u&route=shorturl",
-          },
-        ],
-        KamarBersalin: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNEtDQTM1NzNDTFlDTFlDRldCTkVUU0JONC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNlFVWUc0RkJCTjc5NTQzUk1ZN0xYRUlHNS4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNkE2RUdMRTlaMTdPNUwwVVhFV1FTTUZMNi4u&route=shorturl",
-          },
-          {
-            name: "4 - Kelembapan Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQk03M1RWM0IxWDhUS1VJOVdaOUdDNVJUMC4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembapan Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQURYTzA3STgwRzhPNE41WE1BU0RHMlRJTS4u&route=shorturl",
-          },
-          {
-            name: "6 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMDhFVzRQTDg3VjlJWVhPSkNROFZNU1lBWi4u&route=shorturl",
-          },
-        ],
-        Perawatan3: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOFAwTDNBVUVBUzlBSjY5OEpJQzNGSzBVSy4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNDBFOUlJV01WVDgwMzRKRzY0V0pJVUg0Ui4u&route=shorturl",
-          },
-          {
-            name: "3 - Kelembapan Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOUhXSDRVS0VGRjQxT05YQ0o2OFo1Nk5QSS4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQ081WTZBR0RWOEc5N0U3UkI1QjBZRVczSy4u&route=shorturl",
-          },
-        ],
-        ICU: [
-          {
-            name: "1 - Suhu Ruangan Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOFpXVDRON1pBRDhJRkVPOE5TUFozR0ZPRS4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembapan Ruangan Intensif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQzJBQU1VRzE0QThaRUpCS1hLUVQ1U1BWWi4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Ruangan Isolasi",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM1hPU0JIRERXS1VYWldTRjVMOFdKQUFSUy4u&route=shorturl",
-          },
-          {
-            name: "4 - Tekanan Udara Ruangan Isolasi",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMjlOR0U0RE1IOUE0MEJCR1lJUkRUSTE5UC4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembapan Ruangan Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOEpSVjdIOEtVRldXSzA2WTRZWVZLOVE2Qy4u&route=shorturl",
-          },
-          {
-            name: "6 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREVBSzU2QjZaMEdYRDdYV0JTNDJCWFJKTi4u&route=shorturl",
-          },
-          {
-            name: "7 - Kelembapan Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM0hFNEhJMUJMSERWUE5KSUlNU1dLNTBPWC4u&route=shorturl",
-          },
-          {
-            name: "8 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMTVLVDBETUJaSlgxUjlEWE8wVUFCUUtWQi4u&route=shorturl",
-          },
-        ],
-        HighCareUnit: [
-          {
-            name: "1 - Suhu Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URDU1U1JXR1c4Qk1HSlBPTVNZQzdaQVBaUC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruangan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNzRESVhNWERINkVNRDVOTDQ2SjYwQVJQTC4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URTNaQjFRRkFKMko3S0NQODNENzA3UkRGWi4u&route=shorturl",
-          },
-          {
-            name: "4 - Kelembaban Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URjM4NDRaT0cxTTMzWlg0MEhLRUlWOU5VSi4u&route=shorturl",
-          },
-          {
-            name: "5 - Tekanan Udara Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URDk5STVKUVhOOEVMVjE1M0xDUEVWOFFBMi4u&route=shorturl",
-          },
-          {
-            name: "6 - Kelembaban Ruangan Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMDVZN0xTUlFUOTFVS0NVT0FVN1ZBUEk1Si4u&route=shorturl",
-          },
-          {
-            name: "7 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URFBSTzIxWjBSV0tURUVNMVcxUTFDN1k2VS4u&route=shorturl",
-          },
-          {
-            name: "8 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMktLWjQ3S0I1TDhRTVJHNEZEWUo2MUxLRC4u&route=shorturl",
-          },
-          {
-            name: "9 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQTdWT0ZRVzdOSzQzRzhRTVI0QU9GOUtHUy4u&route=shorturl",
-          },
-        ],
-        Hemodialisa: [
-          {
-            name: "1 - Suhu Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREhOQ0NIU0ZRRFZIV1JNSTY0SkZKUDhPQy4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URTM4UUxaREJOWVlOUVdXQk9STFRFTkRTQy4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNExaU1VBM1UzQTZGSjFBNTFUWVA4TUtBUC4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQVRXU1hIVTlKWlZaUlJZNTcyVjczVjRNVy4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQTk4VkpOTzRVM1ZTTEc1VjhNODlZRkhSRS4u&route=shorturl",
-          },
-        ],
-        Perawatan5: [
-          {
-            name: "1 - Suhu Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URUJIUDA2RTVaMzFUMjBFQUM4MTZXR1FGTC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URE5PVVM2M0RaTUpWUDlRSENGSkg0RUFLMS4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQkEzNFZIT01QMk9ZWjhRS0dFS1pIMzlVSi4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URDc3VDM3RUhIREQyUDFBVkVHUEZJR1lFMS4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNFNTR1RNWEVITTZBTUdGWlBNTVhQRUUyRy4u&route=shorturl",
-          },
-        ],
-        Perawatan6: [
-          {
-            name: "1 - Suhu Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREdRVDA5RTVNVEM3U1ozU0hBNFdMNFoyRy4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNjVaSVU5MVdBTlk2RDVXSFpKUzZYSEJUVi4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UM1NUREJZNFNCQjRDUkdaSEJSUFo0STFSTS4u&route=shorturl",
-          },
-          {
-            name: "4 - Kelembaban Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNElGU00zNFBHR0g0UFI0NFdFTDVFSFpJNy4u&route=shorturl",
-          },
-          {
-            name: "5 - Tekanan Udara Ruang Isolasi Bertekanan Negatif",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URjNIQVVVSVVXN1FYRUFUSTlHMzAyTThFRi4u&route=shorturl",
-          },
-          {
-            name: "6 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UOEwyMkgxUFRXWkxBUjRXOFMzVTVJOTFJTi4u&route=shorturl",
-          },
-          {
-            name: "7 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMUJaVTdQMlFMREJaNFFFUU9DOU1NVkRBVi4u&route=shorturl",
-          },
-          {
-            name: "8 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMFA5NDRFQjYwMVNKU082Qlo0VklQTDgxUS4u&route=shorturl",
-          },
-        ],
-        Perawatan7: [
-          {
-            name: "1 - Suhu Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URDZCTEhLQlY4SThZU1hHMVk0TTFWR1dJMC4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruang Penyimpanan Obat ",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMEM5ME9JUVZUWkswMTg3Rlk4UDI3SkYzQS4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNzFMRUM4STFaUjc1WjEzUjA2Q0hGRTFPMS4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMUJSQUs4MlhUNzBORkhZN0E0R0ZURUZYWC4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQ1BRNkQ3NkhSSzFYUDlISFkyR1QzR0xGMy4u&route=shorturl",
-          },
-          {
-            name: "6 - Suhu Ruang Tindakan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65URUQxRzdEWENGUEszOEY0MkZNWDYyRVY5WS4u&route=shorturl",
-          },
-          {
-            name: "7 - Kelembaban Ruang Tindakan",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UNzNFWVNNSVZORkxBNjY3MUszMUxFM0pFNy4u&route=shorturl",
-          },
-        ],
-        Perawatan8: [
-          {
-            name: "1 - Suhu Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQkMyVEFWNDVaNzc1UkpKNDNOUDRJQjlSWi4u&route=shorturl",
-          },
-          {
-            name: "2 - Kelembaban Ruang Penyimpanan Obat",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UN01FQTFTUUFKVVBZVFhNWlJGTllBMEZLOC4u&route=shorturl",
-          },
-          {
-            name: "3 - Suhu Lemari Es",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UQ0JIUjFPODBEU0Q0SDVTUTI3UFNVSlA5My4u&route=shorturl",
-          },
-          {
-            name: "4 - Suhu Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UREZBN0RZTEJEUkVTR0QzSk9SR0NFQlBaRi4u&route=shorturl",
-          },
-          {
-            name: "5 - Kelembaban Lemari Penyimpanan Stok Alkes CSSD",
-            link: "https://forms.office.com/pages/responsepage.aspx?id=rwu50EO37UiZ_BaSqRJiXDSpA9Wh-PZNn-dsYaYgg65UMTlFTTI4NktJSTdHSktYUFQ3R0o3Q1FSQi4u&route=shorturl",
-          },
-        ],
-      };
+      let data = {};
+      let unitsList = [];
 
       const app = document.getElementById("app");
       const modal = document.getElementById("loginModal");
       const errorMsg = document.getElementById("errorMsg");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const statusMsg = document.getElementById("statusMsg");
 
       /* =====================
          HELPER
       ===================== */
       function formatUnitName(text) {
-        return text.replace(/([a-z])([A-Z])/g, "$1 $2");
+        return text
+          .replace(/([a-z])([A-Z])/g, "$1 $2")
+          .replace(/([a-zA-Z])(\d)/g, "$1 $2");
       }
 
-      /* =====================
-         LOGIN
-      ===================== */
-      function login() {
-        if (
-          document.getElementById("username").value === "guard" &&
-          document.getElementById("password").value === "guard@01"
-        ) {
+      function setStatus(message, isError) {
+        statusMsg.textContent = message;
+        statusMsg.classList.toggle("text-red-600", !!isError);
+        statusMsg.classList.toggle("bg-red-50", !!isError);
+        statusMsg.classList.toggle("border-red-200", !!isError);
+        statusMsg.classList.toggle("text-gray-600", !isError);
+        statusMsg.classList.toggle("bg-gray-50", !isError);
+        statusMsg.classList.toggle("border-gray-200", !isError);
+      }
+
+      async function fetchUnits() {
+        const user = window.netlifyIdentity.currentUser();
+        if (!user) {
+          throw new Error("Belum login.");
+        }
+
+        const token = user.token.access_token;
+        const res = await fetch("/.netlify/functions/units", {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Gagal mengambil data.");
+        }
+
+        const payload = await res.json();
+        data = payload.units.reduce((acc, unit) => {
+          acc[unit.name] = unit.forms || [];
+          return acc;
+        }, {});
+        unitsList = Object.keys(data);
+      }
+
+      async function onLogin() {
+        errorMsg.classList.add("hidden");
+        setStatus("Mengambil data...", false);
+        try {
+          await fetchUnits();
           modal.classList.add("hidden");
           app.classList.remove("hidden");
+          logoutBtn.classList.remove("hidden");
           renderHome();
-        } else {
+        } catch (err) {
           errorMsg.classList.remove("hidden");
+          setStatus(err.message || "Login gagal.", true);
         }
+      }
+
+      function onLogout() {
+        app.classList.add("hidden");
+        modal.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+        setStatus("Silakan login untuk melanjutkan.", false);
       }
 
       /* =====================
@@ -527,8 +185,9 @@
       }
 
       function renderResults(keyword) {
-        const units = Object.keys(data).filter((unit) =>
-          unit.toLowerCase().includes(keyword.toLowerCase()),
+        const key = keyword.trim().toLowerCase();
+        const units = unitsList.filter((unit) =>
+          unit.toLowerCase().includes(key),
         );
 
         const container = document.getElementById("results");
@@ -589,12 +248,13 @@
           </div>
 
           <div class="space-y-3">
-            ${data[unit]
+            ${(data[unit] || [])
               .map(
                 (f) => `
               <a
                 href="${f.link}"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="block p-4 rounded-xl bg-white
                        border hover:shadow transition"
               >
@@ -606,6 +266,32 @@
           </div>
         `;
       }
+
+      loginBtn.addEventListener("click", () => {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.open("login");
+        }
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        if (window.netlifyIdentity) {
+          window.netlifyIdentity.logout();
+        }
+      });
+
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("login", () => {
+          window.netlifyIdentity.close();
+          onLogin();
+        });
+        window.netlifyIdentity.on("logout", onLogout);
+        window.netlifyIdentity.init();
+
+        if (window.netlifyIdentity.currentUser()) {
+          onLogin();
+        }
+      }
     </script>
   </body>
 </html>
+
