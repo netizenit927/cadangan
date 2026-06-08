@@ -192,8 +192,39 @@ CREATE POLICY "admin_users: read own record"
     email = (auth.jwt() ->> 'email')
   );
 
--- Tidak ada policy insert/update/delete untuk admin_users via client.
--- Manajemen admin hanya boleh lewat SQL Editor Supabase (server-side).
+-- Superadmin bisa baca semua record (untuk tab Users di admin panel)
+CREATE POLICY "admin_users: superadmin read all"
+  ON public.admin_users FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.admin_users au
+      WHERE au.email = (auth.jwt() ->> 'email')
+        AND au.role = 'superadmin'
+    )
+  );
+
+-- Admin/superadmin bisa insert admin user baru (dari panel)
+CREATE POLICY "admin_users: admin insert"
+  ON public.admin_users FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.admin_users au
+      WHERE au.email = (auth.jwt() ->> 'email')
+    )
+  );
+
+-- Admin/superadmin bisa hapus admin user (cabut akses)
+CREATE POLICY "admin_users: admin delete"
+  ON public.admin_users FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.admin_users au
+      WHERE au.email = (auth.jwt() ->> 'email')
+    )
+  );
 
 
 -- ================================================================

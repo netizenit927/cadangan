@@ -23,10 +23,8 @@
           <div class="text-xs text-gray-500 tracking-wide">TRINITRIX — <span class="text-red-600 font-semibold">Admin Panel</span></div>
         </div>
         <div class="ml-auto flex items-center gap-3">
-          <span id="adminEmail" class="hidden text-xs text-gray-500"></span>
-          <button id="logoutBtn" class="hidden px-4 py-2 rounded-lg border bg-white text-sm font-medium hover:bg-gray-50 transition active:scale-95">
-            Logout
-          </button>
+          <span id="adminEmail" class="hidden text-xs text-gray-500 italic"></span>
+          <button id="logoutBtn" class="hidden px-4 py-2 rounded-lg border bg-white text-sm font-medium hover:bg-gray-50 transition active:scale-95">Logout</button>
         </div>
       </div>
     </nav>
@@ -34,7 +32,6 @@
     <!-- MAIN APP -->
     <main class="pt-24 pb-10 px-4">
       <div id="app" class="max-w-6xl mx-auto hidden fade-in"></div>
-
       <div id="loading" class="hidden fixed inset-0 z-30 flex items-center justify-center bg-gray-100/50">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-red-600"></div>
       </div>
@@ -48,7 +45,6 @@
           <h2 class="font-bold text-xl text-gray-900">Admin Panel</h2>
           <p class="text-sm text-gray-500 mt-1">Masuk sebagai <b class="text-red-600">Administrator</b></p>
         </div>
-
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1">Email Admin</label>
@@ -60,11 +56,9 @@
             <input id="adminPasswordInput" type="password" placeholder="••••••••"
               class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-red-500 outline-none transition" />
           </div>
-
           <div id="loginStatus" class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
             Masuk menggunakan akun admin.
           </div>
-
           <button id="loginBtn"
             class="w-full py-3.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition active:scale-[0.98]">
             Masuk Admin
@@ -73,15 +67,14 @@
       </div>
     </div>
 
-    <!-- MODAL TAMBAH/EDIT FORM -->
+    <!-- MODAL TAMBAH/EDIT DOKUMEN -->
     <div id="formModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 modal-backdrop px-4">
       <div class="bg-white rounded-2xl w-full max-w-lg p-7 shadow-2xl fade-in">
         <h3 id="formModalTitle" class="text-lg font-bold mb-5 text-gray-900">Tambah Dokumen</h3>
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1">Kategori (Unit)</label>
-            <select id="formUnitSelect"
-              class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+            <select id="formUnitSelect" class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
               <option value="">-- Pilih Kategori --</option>
             </select>
           </div>
@@ -128,6 +121,40 @@
       </div>
     </div>
 
+    <!-- MODAL TAMBAH USER (Admin/User biasa) -->
+    <div id="userModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 modal-backdrop px-4">
+      <div class="bg-white rounded-2xl w-full max-w-md p-7 shadow-2xl fade-in">
+        <h3 id="userModalTitle" class="text-lg font-bold mb-2 text-gray-900">Tambah User</h3>
+        <p class="text-sm text-gray-500 mb-5">Akun akan dibuat di Supabase Auth dan langsung bisa login.</p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1">Email</label>
+            <input id="userEmail" type="email" placeholder="user@rspj.com"
+              class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1">Password</label>
+            <input id="userPassword" type="text" placeholder="Password awal"
+              class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-500 outline-none transition" />
+            <p class="text-xs text-gray-400 mt-1 ml-1">Min. 6 karakter. Beritahukan ke user untuk ganti password setelah login pertama.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1">Tipe Akun</label>
+            <select id="userRole" class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-500 outline-none transition bg-white">
+              <option value="user">User Biasa (hanya bisa lihat dokumen)</option>
+              <option value="admin">Admin (bisa kelola dokumen & kategori)</option>
+              <option value="superadmin">Superadmin (akses penuh termasuk kelola user)</option>
+            </select>
+          </div>
+          <div id="userModalStatus" class="hidden text-sm rounded-lg px-3 py-2 border"></div>
+          <div class="flex gap-3 pt-1">
+            <button id="userModalSave" class="flex-1 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition active:scale-95">Buat Akun</button>
+            <button onclick="closeUserModal()" class="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition active:scale-95">Batal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- CONFIRM DELETE MODAL -->
     <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 modal-backdrop px-4">
       <div class="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl fade-in text-center">
@@ -148,26 +175,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function () {
-      // ========================
-      // SUPABASE CONFIG
-      // ========================
-      const supabaseUrl = "https://puoawllonvaeufvkmcrd.supabase.co";
-      const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1b2F3bGxvbnZhZXVmdmttY3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MTk2NjMsImV4cCI6MjA4NTQ5NTY2M30.SRPc4HT8jbjpIsbY4SeZFPCT0CGY84sfYsNJ58UUYLk";
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+      const supabaseUrl     = "https://zzdseaudjqsyjadcdiyo.supabase.co/";
+      const supabaseAnonKey = "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZHNlYXVkanFzeWphZGNkaXlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NzkxNjcsImV4cCI6MjA5NjQ1NTE2N30";
+      const supabase        = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-      // ========================
-      // STATE
-      // ========================
-      let units = [];        // [{id, name}]
-      let forms = [];        // [{id, name, link, sort_order, unit_id, unit_name}]
-      let editingFormId = null;
-      let editingCategoryId = null;
-      let pendingDeleteFn = null;
-      let activeTab = 'documents'; // 'documents' | 'categories'
+      // ── STATE ──────────────────────────────────────────────
+      let units            = [];
+      let forms            = [];
+      let adminUsers       = [];
+      let currentAdminRole = 'admin';
+      let editingFormId    = null;
+      let editingCatId     = null;
+      let pendingDeleteFn  = null;
+      let activeTab        = 'documents';
 
-      // ========================
-      // ELEMENTS
-      // ========================
+      // ── ELEMENTS ───────────────────────────────────────────
       const appEl        = document.getElementById('app');
       const modal        = document.getElementById('loginModal');
       const loginBtn     = document.getElementById('loginBtn');
@@ -176,69 +198,46 @@
       const loginStatus  = document.getElementById('loginStatus');
       const loader       = document.getElementById('loading');
 
-      // ========================
-      // AUTH
-      // ========================
+      // ── AUTH ───────────────────────────────────────────────
       loginBtn.addEventListener('click', async () => {
         const email    = document.getElementById('adminEmailInput').value.trim();
         const password = document.getElementById('adminPasswordInput').value;
-
-        if (!email || !password) {
-          setLoginStatus('Email dan password wajib diisi.', true);
-          return;
-        }
+        if (!email || !password) { setLoginStatus('Email dan password wajib diisi.', true); return; }
 
         setLoginStatus('Memeriksa kredensial...', false);
         loginBtn.disabled = true;
 
         try {
-          // Login via Supabase Auth
-          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-          if (authError) throw authError;
+          const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (authErr) throw authErr;
 
-          // Cek apakah user ini terdaftar sebagai admin
-          const { data: adminRow, error: adminError } = await supabase
-            .from('admin_users')
-            .select('id, email, role')
-            .eq('email', email)
-            .single();
+          const { data: adminRow, error: adminErr } = await supabase
+            .from('admin_users').select('id,email,role').eq('email', email).single();
 
-          if (adminError || !adminRow) {
+          if (adminErr || !adminRow) {
             await supabase.auth.signOut();
             throw new Error('Akun ini tidak memiliki hak akses admin.');
           }
-
-          setLoginStatus('Login berhasil!', false);
         } catch (err) {
           setLoginStatus(err.message, true);
           loginBtn.disabled = false;
         }
       });
 
-      logoutBtn.addEventListener('click', async () => {
-        await supabase.auth.signOut();
-      });
+      logoutBtn.addEventListener('click', () => supabase.auth.signOut());
 
       supabase.auth.onAuthStateChange(async (event, session) => {
         if (session) {
-          // Verifikasi admin saat restore session
           const { data: adminRow } = await supabase
-            .from('admin_users')
-            .select('id, email, role')
-            .eq('email', session.user.email)
-            .single();
+            .from('admin_users').select('id,email,role').eq('email', session.user.email).single();
+          if (!adminRow) { await supabase.auth.signOut(); return; }
 
-          if (!adminRow) {
-            await supabase.auth.signOut();
-            return;
-          }
-
+          currentAdminRole = adminRow.role;
           modal.classList.add('hidden');
           logoutBtn.classList.remove('hidden');
-          adminEmailEl.textContent = session.user.email;
+          adminEmailEl.textContent = session.user.email + ' (' + adminRow.role + ')';
           adminEmailEl.classList.remove('hidden');
           appEl.classList.remove('hidden');
-
           await loadData();
           renderApp();
         } else {
@@ -253,25 +252,21 @@
         }
       });
 
-      // ========================
-      // DATA LOADING
-      // ========================
+      // ── DATA LOADING ───────────────────────────────────────
       async function loadData() {
         showLoader(true);
         try {
-          const [unitsRes, formsRes] = await Promise.all([
-            supabase.from('units').select('id, name').order('name'),
-            supabase.from('forms').select('id, name, link, sort_order, unit_id, units(name)').order('sort_order')
+          const [unitsRes, formsRes, usersRes] = await Promise.all([
+            supabase.from('units').select('id,name').order('name'),
+            supabase.from('forms').select('id,name,link,sort_order,unit_id,units(name)').order('sort_order'),
+            supabase.from('admin_users').select('id,email,role,created_at').order('created_at')
           ]);
-
           if (unitsRes.error) throw unitsRes.error;
           if (formsRes.error) throw formsRes.error;
 
-          units = unitsRes.data || [];
-          forms = (formsRes.data || []).map(f => ({
-            ...f,
-            unit_name: f.units?.name || '-'
-          }));
+          units      = unitsRes.data || [];
+          forms      = (formsRes.data || []).map(f => ({ ...f, unit_name: f.units?.name || '-' }));
+          adminUsers = usersRes.data || [];
         } catch (err) {
           alert('Gagal memuat data: ' + err.message);
         } finally {
@@ -279,15 +274,14 @@
         }
       }
 
-      // ========================
-      // RENDER MAIN APP
-      // ========================
+      // ── RENDER APP ─────────────────────────────────────────
       function renderApp() {
+        const isSuperadmin = currentAdminRole === 'superadmin';
         appEl.innerHTML = `
           <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 class="text-2xl font-bold text-gray-900">Admin Panel</h1>
-              <p class="text-gray-500 text-sm">Kelola kategori unit dan dokumen laporan</p>
+              <p class="text-gray-500 text-sm">Kelola kategori, dokumen, dan pengguna sistem</p>
             </div>
             <a href="index.html" target="_blank"
               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border bg-white text-sm font-medium hover:bg-gray-50 transition shadow-sm">
@@ -299,7 +293,7 @@
           </div>
 
           <!-- STATS -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             <div class="bg-white rounded-2xl p-5 shadow-sm border">
               <div class="text-3xl font-bold text-blue-600">${units.length}</div>
               <div class="text-sm text-gray-500 mt-1">Kategori Unit</div>
@@ -308,60 +302,60 @@
               <div class="text-3xl font-bold text-green-600">${forms.length}</div>
               <div class="text-sm text-gray-500 mt-1">Total Dokumen</div>
             </div>
-            <div class="bg-white rounded-2xl p-5 shadow-sm border col-span-2 sm:col-span-1">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border">
               <div class="text-3xl font-bold text-purple-600">${units.filter(u => forms.some(f => f.unit_id === u.id)).length}</div>
               <div class="text-sm text-gray-500 mt-1">Unit Aktif</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border">
+              <div class="text-3xl font-bold text-orange-500">${adminUsers.length}</div>
+              <div class="text-sm text-gray-500 mt-1">Admin / User</div>
             </div>
           </div>
 
           <!-- TABS -->
-          <div class="flex gap-2 mb-6 border-b">
-            <button id="tabDocs" onclick="switchTab('documents')"
-              class="px-5 py-3 text-sm font-semibold border-b-2 transition ${activeTab === 'documents' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
-              Dokumen
+          <div class="flex gap-1 mb-6 border-b overflow-x-auto">
+            <button onclick="switchTab('documents')"
+              class="px-5 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition ${activeTab === 'documents' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
+              📄 Dokumen
             </button>
-            <button id="tabCats" onclick="switchTab('categories')"
-              class="px-5 py-3 text-sm font-semibold border-b-2 transition ${activeTab === 'categories' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
-              Kategori Unit
+            <button onclick="switchTab('categories')"
+              class="px-5 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition ${activeTab === 'categories' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
+              🗂️ Kategori
+            </button>
+            <button onclick="switchTab('users')"
+              class="px-5 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition ${activeTab === 'users' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'}">
+              👥 Users
             </button>
           </div>
 
           <div id="tabContent"></div>
         `;
-
         renderTabContent();
       }
 
-      window.switchTab = function(tab) {
-        activeTab = tab;
-        renderApp();
-      };
+      window.switchTab = function(tab) { activeTab = tab; renderApp(); };
 
       function renderTabContent() {
-        const container = document.getElementById('tabContent');
-        if (activeTab === 'documents') {
-          renderDocumentsTab(container);
-        } else {
-          renderCategoriesTab(container);
-        }
+        const c = document.getElementById('tabContent');
+        if      (activeTab === 'documents')  renderDocumentsTab(c);
+        else if (activeTab === 'categories') renderCategoriesTab(c);
+        else                                 renderUsersTab(c);
       }
 
-      // ========================
-      // TAB: DOCUMENTS
-      // ========================
-      function renderDocumentsTab(container) {
-        container.innerHTML = `
+      // ── TAB: DOKUMEN ───────────────────────────────────────
+      function renderDocumentsTab(c) {
+        c.innerHTML = `
           <div class="flex flex-col sm:flex-row gap-3 mb-5">
             <input id="docSearch" type="text" placeholder="Cari dokumen atau unit..."
               oninput="filterDocuments(this.value)"
-              class="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm" />
+              class="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none shadow-sm" />
             <select id="docFilterUnit" onchange="filterDocuments(document.getElementById('docSearch').value)"
-              class="px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition bg-white shadow-sm">
+              class="px-4 py-3 rounded-xl border bg-white focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
               <option value="">Semua Kategori</option>
-              ${units.map(u => `<option value="${u.id}">${u.name}</option>`).join('')}
+              ${units.map(u => `<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
             </select>
             <button onclick="openFormModal()"
-              class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm whitespace-nowrap">
+              class="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm whitespace-nowrap">
               + Tambah Dokumen
             </button>
           </div>
@@ -370,27 +364,21 @@
         renderDocsTable(forms);
       }
 
-      window.filterDocuments = function(keyword) {
-        const unitId = document.getElementById('docFilterUnit')?.value || '';
-        const key    = keyword.trim().toLowerCase();
-        const filtered = forms.filter(f => {
-          const matchUnit = !unitId || f.unit_id === unitId;
-          const matchKey  = !key || f.name.toLowerCase().includes(key) || f.unit_name.toLowerCase().includes(key);
-          return matchUnit && matchKey;
-        });
+      window.filterDocuments = function(kw) {
+        const unitId   = document.getElementById('docFilterUnit')?.value || '';
+        const key      = kw.trim().toLowerCase();
+        const filtered = forms.filter(f =>
+          (!unitId || f.unit_id === unitId) &&
+          (!key || f.name.toLowerCase().includes(key) || f.unit_name.toLowerCase().includes(key))
+        );
         renderDocsTable(filtered);
       };
 
       function renderDocsTable(data) {
-        const container = document.getElementById('docsTable');
-        if (!container) return;
-
-        if (data.length === 0) {
-          container.innerHTML = `<div class="text-center py-12 text-gray-400">Tidak ada dokumen ditemukan</div>`;
-          return;
-        }
-
-        container.innerHTML = `
+        const c = document.getElementById('docsTable');
+        if (!c) return;
+        if (!data.length) { c.innerHTML = `<div class="text-center py-12 text-gray-400">Tidak ada dokumen ditemukan</div>`; return; }
+        c.innerHTML = `
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="bg-gray-50 border-b">
@@ -404,50 +392,36 @@
               </thead>
               <tbody class="divide-y divide-gray-100">
                 ${data.map(f => `
-                  <tr class="hover:bg-gray-50 transition">
-                    <td class="px-5 py-4 font-medium text-gray-800">${escHtml(f.name)}</td>
-                    <td class="px-5 py-4">
-                      <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">${escHtml(f.unit_name)}</span>
-                    </td>
-                    <td class="px-5 py-4 hidden md:table-cell">
-                      <a href="${escHtml(f.link)}" target="_blank" class="text-blue-500 hover:underline truncate block max-w-xs">${escHtml(f.link)}</a>
-                    </td>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-4 font-medium">${escHtml(f.name)}</td>
+                    <td class="px-5 py-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">${escHtml(f.unit_name)}</span></td>
+                    <td class="px-5 py-4 hidden md:table-cell"><a href="${escHtml(f.link)}" target="_blank" class="text-blue-500 hover:underline truncate block max-w-xs">${escHtml(f.link)}</a></td>
                     <td class="px-5 py-4 text-center text-gray-500 hidden sm:table-cell">${f.sort_order}</td>
                     <td class="px-5 py-4">
                       <div class="flex items-center justify-center gap-2">
-                        <button onclick="openFormModal('${f.id}')" 
-                          class="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition" title="Edit">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                          </svg>
+                        <button onclick="openFormModal('${f.id}')" class="p-2 rounded-lg hover:bg-blue-50 text-blue-600" title="Edit">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </button>
-                        <button onclick="confirmDeleteForm('${f.id}', '${escHtml(f.name).replace(/'/g, "\\'")}')" 
-                          class="p-2 rounded-lg hover:bg-red-50 text-red-500 transition" title="Hapus">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                          </svg>
+                        <button onclick="confirmDeleteForm('${f.id}','${escHtml(f.name).replace(/'/g,"\\'")}') " class="p-2 rounded-lg hover:bg-red-50 text-red-500" title="Hapus">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                       </div>
                     </td>
-                  </tr>
-                `).join('')}
+                  </tr>`).join('')}
               </tbody>
             </table>
-          </div>
-        `;
+          </div>`;
       }
 
-      // ========================
-      // TAB: CATEGORIES
-      // ========================
-      function renderCategoriesTab(container) {
-        container.innerHTML = `
+      // ── TAB: KATEGORI ──────────────────────────────────────
+      function renderCategoriesTab(c) {
+        c.innerHTML = `
           <div class="flex flex-col sm:flex-row gap-3 mb-5">
             <input id="catSearch" type="text" placeholder="Cari kategori..."
               oninput="filterCategories(this.value)"
-              class="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500 outline-none transition shadow-sm" />
+              class="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500 outline-none shadow-sm" />
             <button onclick="openCategoryModal()"
-              class="px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition shadow-sm whitespace-nowrap">
+              class="px-5 py-3 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 shadow-sm whitespace-nowrap">
               + Tambah Kategori
             </button>
           </div>
@@ -456,92 +430,230 @@
         renderCatsTable(units);
       }
 
-      window.filterCategories = function(keyword) {
-        const key = keyword.trim().toLowerCase();
-        const filtered = units.filter(u => u.name.toLowerCase().includes(key));
-        renderCatsTable(filtered);
+      window.filterCategories = function(kw) {
+        const key = kw.trim().toLowerCase();
+        renderCatsTable(units.filter(u => u.name.toLowerCase().includes(key)));
       };
 
       function renderCatsTable(data) {
-        const container = document.getElementById('catsTable');
-        if (!container) return;
-
-        if (data.length === 0) {
-          container.innerHTML = `<div class="text-center py-12 text-gray-400">Tidak ada kategori ditemukan</div>`;
-          return;
-        }
-
-        container.innerHTML = `
+        const c = document.getElementById('catsTable');
+        if (!c) return;
+        if (!data.length) { c.innerHTML = `<div class="text-center py-12 text-gray-400">Tidak ada kategori ditemukan</div>`; return; }
+        c.innerHTML = `
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="bg-gray-50 border-b">
                 <tr>
-                  <th class="text-left px-5 py-4 font-semibold text-gray-600">Nama Kategori / Unit</th>
+                  <th class="text-left px-5 py-4 font-semibold text-gray-600">Nama Kategori</th>
                   <th class="text-center px-5 py-4 font-semibold text-gray-600">Jumlah Dokumen</th>
                   <th class="text-center px-5 py-4 font-semibold text-gray-600">Aksi</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
                 ${data.map(u => {
-                  const docCount = forms.filter(f => f.unit_id === u.id).length;
-                  return `
-                    <tr class="hover:bg-gray-50 transition">
-                      <td class="px-5 py-4 font-medium text-gray-800">${escHtml(u.name)}</td>
-                      <td class="px-5 py-4 text-center">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${docCount > 0 ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">${docCount} dokumen</span>
-                      </td>
-                      <td class="px-5 py-4">
-                        <div class="flex items-center justify-center gap-2">
-                          <button onclick="openCategoryModal('${u.id}')"
-                            class="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition" title="Edit">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                          </button>
-                          <button onclick="confirmDeleteCategory('${u.id}', '${escHtml(u.name).replace(/'/g, "\\'")}')"
-                            class="p-2 rounded-lg hover:bg-red-50 text-red-500 transition ${docCount > 0 ? 'opacity-40 cursor-not-allowed' : ''}"
-                            title="${docCount > 0 ? 'Hapus dokumen di kategori ini terlebih dahulu' : 'Hapus'}"
-                            ${docCount > 0 ? 'disabled' : ''}>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
+                  const n = forms.filter(f => f.unit_id === u.id).length;
+                  return `<tr class="hover:bg-gray-50">
+                    <td class="px-5 py-4 font-medium">${escHtml(u.name)}</td>
+                    <td class="px-5 py-4 text-center">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${n > 0 ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">${n} dokumen</span>
+                    </td>
+                    <td class="px-5 py-4">
+                      <div class="flex items-center justify-center gap-2">
+                        <button onclick="openCategoryModal('${u.id}')" class="p-2 rounded-lg hover:bg-blue-50 text-blue-600" title="Edit">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <button onclick="confirmDeleteCategory('${u.id}','${escHtml(u.name).replace(/'/g,"\\'")}')"
+                          class="p-2 rounded-lg hover:bg-red-50 text-red-500 ${n > 0 ? 'opacity-40 cursor-not-allowed' : ''}"
+                          title="${n > 0 ? 'Hapus dokumen di kategori ini dulu' : 'Hapus'}" ${n > 0 ? 'disabled' : ''}>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>`;
                 }).join('')}
               </tbody>
             </table>
-          </div>
-        `;
+          </div>`;
       }
 
-      // ========================
-      // FORM DOCUMENT MODAL
-      // ========================
-      window.openFormModal = function(formId = null) {
-        editingFormId = formId;
-        const modalEl = document.getElementById('formModal');
-        const titleEl = document.getElementById('formModalTitle');
-        const saveBtn = document.getElementById('formModalSave');
-        const statusEl = document.getElementById('formModalStatus');
+      // ── TAB: USERS ─────────────────────────────────────────
+      function renderUsersTab(c) {
+        c.innerHTML = `
+          <div class="flex flex-col sm:flex-row gap-3 mb-5">
+            <input id="userSearch" type="text" placeholder="Cari email user..."
+              oninput="filterUsers(this.value)"
+              class="flex-1 px-4 py-3 rounded-xl border focus:ring-2 focus:ring-purple-500 outline-none shadow-sm" />
+            <button onclick="openUserModal()"
+              class="px-5 py-3 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 shadow-sm whitespace-nowrap">
+              + Tambah User
+            </button>
+          </div>
 
-        // Populate unit options
+          <!-- Info box -->
+          <div class="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800 flex gap-3 items-start">
+            <span class="text-lg">ℹ️</span>
+            <div>
+              <b>Tentang manajemen user:</b><br/>
+              Tabel di bawah menampilkan semua akun admin yang punya akses ke panel ini.
+              <b>User biasa</b> (yang hanya bisa login di halaman publik) dikelola langsung di
+              <a href="https://supabase.com/dashboard/project/puoawllonvaeufvkmcrd/auth/users" target="_blank"
+                class="underline font-semibold text-amber-900">Supabase Dashboard → Authentication → Users</a>.
+              Untuk membuat user baru yang bisa login ke halaman publik, klik tombol "+ Tambah User" dan pilih tipe <b>User Biasa</b>.
+            </div>
+          </div>
+
+          <div id="usersTable" class="bg-white rounded-2xl shadow-sm border overflow-hidden"></div>
+        `;
+        renderUsersTable(adminUsers);
+      }
+
+      window.filterUsers = function(kw) {
+        const key = kw.trim().toLowerCase();
+        renderUsersTable(adminUsers.filter(u => u.email.toLowerCase().includes(key)));
+      };
+
+      function renderUsersTable(data) {
+        const c = document.getElementById('usersTable');
+        if (!c) return;
+
+        // Tampilkan semua user (admin + dari app_users jika ada)
+        if (!data.length) {
+          c.innerHTML = `<div class="text-center py-12 text-gray-400">Belum ada user admin terdaftar</div>`;
+          return;
+        }
+
+        const roleColors = {
+          superadmin: 'bg-red-50 text-red-700',
+          admin:      'bg-orange-50 text-orange-700',
+          user:       'bg-blue-50 text-blue-700'
+        };
+
+        c.innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 border-b">
+                <tr>
+                  <th class="text-left px-5 py-4 font-semibold text-gray-600">Email</th>
+                  <th class="text-center px-5 py-4 font-semibold text-gray-600">Role</th>
+                  <th class="text-center px-5 py-4 font-semibold text-gray-600 hidden sm:table-cell">Dibuat</th>
+                  <th class="text-center px-5 py-4 font-semibold text-gray-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                ${data.map(u => {
+                  const cls = roleColors[u.role] || 'bg-gray-100 text-gray-600';
+                  const date = new Date(u.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+                  return `<tr class="hover:bg-gray-50">
+                    <td class="px-5 py-4 font-medium">${escHtml(u.email)}</td>
+                    <td class="px-5 py-4 text-center">
+                      <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${cls}">${u.role}</span>
+                    </td>
+                    <td class="px-5 py-4 text-center text-gray-500 hidden sm:table-cell">${date}</td>
+                    <td class="px-5 py-4 text-center">
+                      <button onclick="confirmDeleteAdminUser('${u.id}','${escHtml(u.email).replace(/'/g,"\\'")}')"
+                        class="p-2 rounded-lg hover:bg-red-50 text-red-500" title="Hapus akses admin">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      // ── USER MODAL (tambah user baru) ──────────────────────
+      window.openUserModal = function() {
+        const m        = document.getElementById('userModal');
+        const statusEl = document.getElementById('userModalStatus');
+        document.getElementById('userEmail').value    = '';
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userRole').value     = 'user';
+        statusEl.classList.add('hidden');
+        document.getElementById('userModalSave').onclick = saveUser;
+        m.classList.remove('hidden');
+      };
+
+      window.closeUserModal = function() {
+        document.getElementById('userModal').classList.add('hidden');
+      };
+
+      async function saveUser() {
+        const email    = document.getElementById('userEmail').value.trim();
+        const password = document.getElementById('userPassword').value;
+        const role     = document.getElementById('userRole').value;
+        const statusEl = document.getElementById('userModalStatus');
+
+        if (!email)              { showModalStatus(statusEl, 'Email wajib diisi.', true); return; }
+        if (password.length < 6) { showModalStatus(statusEl, 'Password minimal 6 karakter.', true); return; }
+
+        showModalStatus(statusEl, 'Membuat akun...', false);
+        document.getElementById('userModalSave').disabled = true;
+
+        try {
+          // 1. Buat akun di Supabase Auth menggunakan signUp
+          //    (karena anonKey tidak bisa createUser via admin API)
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { role } }
+          });
+
+          if (signUpErr) throw signUpErr;
+
+          // 2. Kalau role bukan 'user', daftarkan ke admin_users
+          if (role !== 'user') {
+            const { error: insertErr } = await supabase.from('admin_users').insert({ email, role });
+            if (insertErr) throw insertErr;
+          }
+
+          showModalStatus(statusEl, `✅ Akun berhasil dibuat! ${role === 'user' ? 'User bisa langsung login di halaman publik.' : 'Admin sudah bisa login ke panel ini.'}`, false);
+
+          await loadData();
+          renderApp();
+          // Jangan close modal langsung supaya user bisa baca konfirmasi
+          setTimeout(() => { closeUserModal(); renderApp(); }, 2500);
+
+        } catch (err) {
+          showModalStatus(statusEl, 'Gagal: ' + err.message, true);
+        } finally {
+          document.getElementById('userModalSave').disabled = false;
+        }
+      }
+
+      // ── HAPUS ADMIN USER (hanya hapus dari admin_users) ───
+      window.confirmDeleteAdminUser = function(id, email) {
+        document.getElementById('deleteMsg').textContent =
+          `Hapus akses admin "${email}"? Akun mereka tetap ada, tapi tidak bisa login ke panel admin lagi.`;
+        pendingDeleteFn = async () => {
+          const { error } = await supabase.from('admin_users').delete().eq('id', id);
+          if (error) throw error;
+        };
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteConfirmBtn').onclick = executeDelete;
+      };
+
+      // ── FORM MODAL ─────────────────────────────────────────
+      window.openFormModal = function(formId = null) {
+        editingFormId    = formId;
+        const modalEl    = document.getElementById('formModal');
+        const titleEl    = document.getElementById('formModalTitle');
+        const saveBtn    = document.getElementById('formModalSave');
+        const statusEl   = document.getElementById('formModalStatus');
         const unitSelect = document.getElementById('formUnitSelect');
+
         unitSelect.innerHTML = '<option value="">-- Pilih Kategori --</option>' +
           units.map(u => `<option value="${u.id}">${escHtml(u.name)}</option>`).join('');
-
         statusEl.classList.add('hidden');
 
         if (formId) {
-          const form = forms.find(f => f.id === formId);
-          if (form) {
+          const f = forms.find(x => x.id === formId);
+          if (f) {
             titleEl.textContent = 'Edit Dokumen';
-            document.getElementById('formName').value = form.name;
-            document.getElementById('formLink').value = form.link;
-            document.getElementById('formSort').value = form.sort_order;
-            unitSelect.value = form.unit_id;
+            document.getElementById('formName').value = f.name;
+            document.getElementById('formLink').value = f.link;
+            document.getElementById('formSort').value = f.sort_order;
+            unitSelect.value = f.unit_id;
           }
         } else {
           titleEl.textContent = 'Tambah Dokumen';
@@ -550,7 +662,6 @@
           document.getElementById('formSort').value = '1';
           unitSelect.value = '';
         }
-
         saveBtn.onclick = saveForm;
         modalEl.classList.remove('hidden');
       };
@@ -567,110 +678,75 @@
         const unit_id    = document.getElementById('formUnitSelect').value;
         const statusEl   = document.getElementById('formModalStatus');
 
-        if (!unit_id) { showModalStatus(statusEl, 'Pilih kategori terlebih dahulu.', true); return; }
+        if (!unit_id) { showModalStatus(statusEl, 'Pilih kategori.', true); return; }
         if (!name)    { showModalStatus(statusEl, 'Nama dokumen wajib diisi.', true); return; }
         if (!link)    { showModalStatus(statusEl, 'Link wajib diisi.', true); return; }
 
         showModalStatus(statusEl, 'Menyimpan...', false);
-
         try {
           if (editingFormId) {
-            const { error } = await supabase.from('forms')
-              .update({ name, link, sort_order, unit_id })
-              .eq('id', editingFormId);
+            const { error } = await supabase.from('forms').update({ name, link, sort_order, unit_id }).eq('id', editingFormId);
             if (error) throw error;
           } else {
-            const { error } = await supabase.from('forms')
-              .insert({ name, link, sort_order, unit_id });
+            const { error } = await supabase.from('forms').insert({ name, link, sort_order, unit_id });
             if (error) throw error;
           }
-
-          closeFormModal();
-          await loadData();
-          renderApp();
-        } catch (err) {
-          showModalStatus(statusEl, 'Gagal menyimpan: ' + err.message, true);
-        }
+          closeFormModal(); await loadData(); renderApp();
+        } catch (err) { showModalStatus(statusEl, 'Gagal: ' + err.message, true); }
       }
 
-      // ========================
-      // CATEGORY MODAL
-      // ========================
-      window.openCategoryModal = function(categoryId = null) {
-        editingCategoryId = categoryId;
+      // ── CATEGORY MODAL ─────────────────────────────────────
+      window.openCategoryModal = function(catId = null) {
+        editingCatId   = catId;
         const modalEl  = document.getElementById('categoryModal');
         const titleEl  = document.getElementById('categoryModalTitle');
-        const saveBtn  = document.getElementById('categoryModalSave');
         const statusEl = document.getElementById('categoryModalStatus');
-
         statusEl.classList.add('hidden');
 
-        if (categoryId) {
-          const unit = units.find(u => u.id === categoryId);
-          if (unit) {
-            titleEl.textContent = 'Edit Kategori';
-            document.getElementById('categoryName').value = unit.name;
-          }
+        if (catId) {
+          const u = units.find(x => x.id === catId);
+          if (u) { titleEl.textContent = 'Edit Kategori'; document.getElementById('categoryName').value = u.name; }
         } else {
           titleEl.textContent = 'Tambah Kategori';
           document.getElementById('categoryName').value = '';
         }
-
-        saveBtn.onclick = saveCategory;
+        document.getElementById('categoryModalSave').onclick = saveCategory;
         modalEl.classList.remove('hidden');
       };
 
       window.closeCategoryModal = function() {
         document.getElementById('categoryModal').classList.add('hidden');
-        editingCategoryId = null;
+        editingCatId = null;
       };
 
       async function saveCategory() {
         const name     = document.getElementById('categoryName').value.trim();
         const statusEl = document.getElementById('categoryModalStatus');
-
         if (!name) { showModalStatus(statusEl, 'Nama kategori wajib diisi.', true); return; }
-
         showModalStatus(statusEl, 'Menyimpan...', false);
-
         try {
-          if (editingCategoryId) {
-            const { error } = await supabase.from('units')
-              .update({ name })
-              .eq('id', editingCategoryId);
+          if (editingCatId) {
+            const { error } = await supabase.from('units').update({ name }).eq('id', editingCatId);
             if (error) throw error;
           } else {
             const { error } = await supabase.from('units').insert({ name });
             if (error) throw error;
           }
-
-          closeCategoryModal();
-          await loadData();
-          renderApp();
-        } catch (err) {
-          showModalStatus(statusEl, 'Gagal menyimpan: ' + err.message, true);
-        }
+          closeCategoryModal(); await loadData(); renderApp();
+        } catch (err) { showModalStatus(statusEl, 'Gagal: ' + err.message, true); }
       }
 
-      // ========================
-      // DELETE
-      // ========================
-      window.confirmDeleteForm = function(formId, formName) {
-        document.getElementById('deleteMsg').textContent = `Yakin hapus dokumen "${formName}"? Aksi ini tidak bisa dibatalkan.`;
-        pendingDeleteFn = async () => {
-          const { error } = await supabase.from('forms').delete().eq('id', formId);
-          if (error) throw error;
-        };
+      // ── DELETE ─────────────────────────────────────────────
+      window.confirmDeleteForm = function(id, name) {
+        document.getElementById('deleteMsg').textContent = `Yakin hapus dokumen "${name}"?`;
+        pendingDeleteFn = async () => { const { error } = await supabase.from('forms').delete().eq('id', id); if (error) throw error; };
         document.getElementById('deleteModal').classList.remove('hidden');
         document.getElementById('deleteConfirmBtn').onclick = executeDelete;
       };
 
-      window.confirmDeleteCategory = function(catId, catName) {
-        document.getElementById('deleteMsg').textContent = `Yakin hapus kategori "${catName}"?`;
-        pendingDeleteFn = async () => {
-          const { error } = await supabase.from('units').delete().eq('id', catId);
-          if (error) throw error;
-        };
+      window.confirmDeleteCategory = function(id, name) {
+        document.getElementById('deleteMsg').textContent = `Yakin hapus kategori "${name}"?`;
+        pendingDeleteFn = async () => { const { error } = await supabase.from('units').delete().eq('id', id); if (error) throw error; };
         document.getElementById('deleteModal').classList.remove('hidden');
         document.getElementById('deleteConfirmBtn').onclick = executeDelete;
       };
@@ -678,17 +754,12 @@
       async function executeDelete() {
         if (!pendingDeleteFn) return;
         try {
-          showLoader(true);
-          closeDeleteModal();
+          showLoader(true); closeDeleteModal();
           await pendingDeleteFn();
           pendingDeleteFn = null;
-          await loadData();
-          renderApp();
-        } catch (err) {
-          alert('Gagal menghapus: ' + err.message);
-        } finally {
-          showLoader(false);
-        }
+          await loadData(); renderApp();
+        } catch (err) { alert('Gagal menghapus: ' + err.message); }
+        finally { showLoader(false); }
       }
 
       window.closeDeleteModal = function() {
@@ -696,35 +767,23 @@
         pendingDeleteFn = null;
       };
 
-      // ========================
-      // HELPERS
-      // ========================
+      // ── HELPERS ────────────────────────────────────────────
       function setLoginStatus(msg, isError) {
         loginStatus.textContent = msg;
-        loginStatus.className = `text-sm rounded-lg px-3 py-2 border ${isError
-          ? 'text-red-600 bg-red-50 border-red-200'
-          : 'text-gray-600 bg-gray-50 border-gray-200'}`;
+        loginStatus.className = `text-sm rounded-lg px-3 py-2 border ${isError ? 'text-red-600 bg-red-50 border-red-200' : 'text-gray-600 bg-gray-50 border-gray-200'}`;
       }
 
       function showModalStatus(el, msg, isError) {
         el.textContent = msg;
-        el.className = `text-sm rounded-lg px-3 py-2 border ${isError
-          ? 'text-red-600 bg-red-50 border-red-200'
-          : 'text-blue-600 bg-blue-50 border-blue-200'}`;
+        el.className = `text-sm rounded-lg px-3 py-2 border ${isError ? 'text-red-600 bg-red-50 border-red-200' : 'text-blue-600 bg-blue-50 border-blue-200'}`;
         el.classList.remove('hidden');
       }
 
-      function showLoader(show) {
-        loader.classList.toggle('hidden', !show);
-      }
+      function showLoader(show) { loader.classList.toggle('hidden', !show); }
 
       function escHtml(str) {
         if (!str) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
     })();
