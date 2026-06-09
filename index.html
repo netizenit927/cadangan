@@ -1,314 +1,537 @@
-﻿<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <title>TRINITRIX - RS Premier Jatinegara</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Smooth transition untuk loading */
-      .fade-in {
-        animation: fadeIn 0.3s ease-in;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TRINITRIX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- bcryptjs untuk verifikasi password di client -->
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <style>
+    /* Custom scrollbar sidebar */
+    #sidebar::-webkit-scrollbar { width: 3px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-  <body class="bg-gray-100 text-gray-800">
-    <nav class="fixed top-0 w-full z-40 bg-white border-b shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-        <img src="logo.jpeg" alt="Logo RS" class="w-10 h-10 object-contain" />
-        <div class="leading-tight">
-          <div class="font-semibold text-sm md:text-base">
-            RS Premier Jatinegara
-          </div>
-          <div class="text-xs text-gray-500 tracking-wide">TRINITRIX</div>
-        </div>
-        <div class="ml-auto">
-          <button
-            id="logoutBtn"
-            class="hidden px-4 py-2 rounded-lg border bg-white text-sm font-medium hover:bg-gray-50 transition active:scale-95"
-          >
-            Logout
+    /* Fade transition konten */
+    #content-area { transition: opacity .15s ease; }
+    #content-area.fading { opacity: 0; }
+
+    /* Smooth skeleton loading */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+<!-- ============================================================
+     HALAMAN LOGIN
+     ============================================================ -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-slate-100">
+  <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-800">TRINITRIX</h1>
+      <p class="text-slate-500 text-sm mt-1">Masuk untuk melanjutkan</p>
+    </div>
+
+    <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-4 text-sm"></div>
+
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+        <input id="loginUser" type="text" required autocomplete="username"
+               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+               placeholder="Masukkan username" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+        <div class="relative">
+          <input id="loginPass" type="password" required autocomplete="current-password"
+                 class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition pr-10"
+                 placeholder="Masukkan password" />
+          <button type="button" id="togglePass"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  aria-label="Toggle password visibility">
+            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
           </button>
         </div>
       </div>
-    </nav>
+      <button type="submit" id="loginBtn"
+              class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2">
+        <span id="loginBtnText">Masuk</span>
+        <svg id="loginSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
 
-    <main class="pt-24 pb-10 px-4">
-      <div id="app" class="max-w-5xl mx-auto hidden fade-in"></div>
+<!-- ============================================================
+     HALAMAN UTAMA (setelah login)
+     ============================================================ -->
+<div id="mainPage" class="hidden">
 
-      <div
-        id="loading"
-        class="hidden fixed inset-0 z-30 flex items-center justify-center bg-gray-100/50"
-      >
-        <div
-          class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"
-        ></div>
+  <!-- TOP BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <a href="#" onclick="return false" class="text-lg font-bold tracking-tight text-slate-800 shrink-0">TRINITRIX</a>
+
+      <!-- Search -->
+      <div class="relative flex-1 max-w-md">
+        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <input id="globalSearch" type="text" placeholder="Cari kategori atau dokumen..."
+               autocomplete="off"
+               class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-slate-50 transition" />
+        <div id="searchDrop"
+             class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+        </div>
       </div>
-    </main>
 
-    <div
-      id="loginModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-    >
-      <div class="bg-white rounded-2xl w-full max-w-md p-8 shadow-2xl fade-in">
-        <div class="flex flex-col items-center mb-8">
-          <img src="logo.jpeg" class="w-20 h-20 object-contain mb-4" />
-          <h2 class="font-bold text-xl text-gray-900">RS Premier Jatinegara</h2>
-          <p class="text-sm text-gray-500 mt-1">
-            Sistem Monitoring <b>TRINITRIX</b>
-          </p>
-        </div>
+      <!-- User info + logout -->
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="userGreeting" class="text-xs text-slate-500 hidden sm:block"></span>
+        <button onclick="logout()"
+                class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Keluar
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <div class="space-y-4">
-          <div>
-            <label
-              class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1"
-              >Email Unit</label
-            >
-            <input
-              id="email"
-              type="email"
-              placeholder="contoh: unit@rspj.com"
-              class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition"
-            />
-          </div>
-          <div>
-            <label
-              class="block text-xs font-semibold text-gray-500 uppercase ml-1 mb-1"
-              >Password</label
-            >
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition"
-            />
-          </div>
+  <!-- LAYOUT: SIDEBAR + CONTENT -->
+  <div class="max-w-7xl mx-auto flex min-h-[calc(100vh-3.5rem)]">
 
-          <div
-            id="statusMsg"
-            class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
-          >
-            Silakan login untuk melanjutkan.
-          </div>
+    <!-- SIDEBAR -->
+    <aside id="sidebar"
+           class="w-52 shrink-0 bg-white border-r border-slate-200 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)] hidden md:block">
+      <div class="p-3">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-2">Kategori</p>
+        <nav id="sidebarNav" class="space-y-0.5">
+          <!-- Skeleton loading -->
+          <div class="skeleton h-9 mb-1"></div>
+          <div class="skeleton h-9 mb-1"></div>
+          <div class="skeleton h-9 mb-1"></div>
+          <div class="skeleton h-9 mb-1"></div>
+          <div class="skeleton h-9 mb-1"></div>
+        </nav>
+      </div>
+    </aside>
 
-          <button
-            id="loginBtn"
-            class="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition active:scale-[0.98]"
-          >
-            Masuk Sekarang
-          </button>
-        </div>
+    <!-- MOBILE: Category pills (scrollable horizontal) -->
+    <div id="mobileCats" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20 shadow-lg">
+      <div class="flex overflow-x-auto gap-2 p-3 scrollbar-hide" style="-webkit-overflow-scrolling:touch; scrollbar-width:none;">
+        <!-- Populated by JS -->
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-      (function () {
-        let data = {};
-        let unitsList = [];
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-4 md:p-6 min-w-0 pb-20 md:pb-6">
+      <div id="content-area">
+        <!-- Skeleton loading -->
+        <div class="mb-5">
+          <div class="skeleton h-8 w-48 mb-2"></div>
+          <div class="skeleton h-4 w-32"></div>
+        </div>
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div class="skeleton h-16"></div>
+          <div class="skeleton h-16"></div>
+          <div class="skeleton h-16"></div>
+          <div class="skeleton h-16"></div>
+          <div class="skeleton h-16"></div>
+          <div class="skeleton h-16"></div>
+        </div>
+      </div>
+    </main>
 
-        // Elements
-        const app = document.getElementById("app");
-        const modal = document.getElementById("loginModal");
-        const loginBtn = document.getElementById("loginBtn");
-        const logoutBtn = document.getElementById("logoutBtn");
-        const statusMsg = document.getElementById("statusMsg");
-        const loader = document.getElementById("loading");
+  </div>
+</div>
 
-        // Supabase Config
-        const supabaseUrl = "https://puoawllonvaeufvkmcrd.supabase.co";
-        const supabaseAnonKey =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1b2F3bGxvbnZhZXVmdmttY3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MTk2NjMsImV4cCI6MjA4NTQ5NTY2M30.SRPc4HT8jbjpIsbY4SeZFPCT0CGY84sfYsNJ58UUYLk";
-        const supabase = window.supabase.createClient(
-          supabaseUrl,
-          supabaseAnonKey,
-        );
+<!-- ============================================================
+     CONFIG SUPABASE – Ganti dengan project kamu
+     ============================================================ -->
+<script>
+  // ⚠️  GANTI dua baris ini dengan URL dan ANON KEY Supabase project kamu
+  const SUPABASE_URL  = 'GANTI_DENGAN_SUPABASE_URL';
+  const SUPABASE_ANON = 'GANTI_DENGAN_SUPABASE_ANON_KEY';
 
-        /* =====================
-           CORE LOGIC
-        ===================== */
+  const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-        async function fetchUnits() {
-          showLoader(true);
-          try {
-            const { data: units, error } = await supabase
-              .from("units")
-              .select("id, name, forms:forms(id, name, link, sort_order)")
-              .order("name", { ascending: true })
-              .order("sort_order", { foreignTable: "forms", ascending: true });
+  // ============================================================
+  // SESSION (pakai sessionStorage supaya ga bocor di inspect)
+  // ============================================================
+  const SESSION_KEY = 'trx_user_session';
 
-            if (error) throw error;
+  function getSession() {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
+    catch { return null; }
+  }
 
-            data = (units || []).reduce((acc, unit) => {
-              acc[unit.name] = unit.forms || [];
-              return acc;
-            }, {});
-            unitsList = Object.keys(data);
-          } catch (err) {
-            setStatus("Gagal memuat data: " + err.message, true);
-          } finally {
-            showLoader(false);
-          }
-        }
+  function setSession(data) {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  }
 
-        async function onLoginSuccess() {
-          modal.classList.add("hidden");
-          logoutBtn.classList.remove("hidden");
-          app.classList.remove("hidden");
+  function clearSession() {
+    sessionStorage.removeItem(SESSION_KEY);
+  }
 
-          await fetchUnits();
-          renderHome();
-        }
+  // ============================================================
+  // TOGGLE PASSWORD VISIBILITY
+  // ============================================================
+  document.getElementById('togglePass').addEventListener('click', () => {
+    const inp = document.getElementById('loginPass');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
 
-        function onLogoutSuccess() {
-          app.classList.add("hidden");
-          logoutBtn.classList.add("hidden");
-          modal.classList.remove("hidden");
-          setStatus("Berhasil logout.", false);
-          document.getElementById("email").value = "";
-          document.getElementById("password").value = "";
-        }
+  // ============================================================
+  // LOGIN
+  // ============================================================
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const errBox   = document.getElementById('loginError');
+    const btn      = document.getElementById('loginBtn');
+    const spinner  = document.getElementById('loginSpinner');
 
-        /* =====================
-           UI RENDERING
-        ===================== */
+    errBox.classList.add('hidden');
+    btn.disabled = true;
+    spinner.classList.remove('hidden');
 
-        window.renderHome = function () {
-          app.innerHTML = `
-            <div class="mb-8">
-              <h1 class="text-2xl font-bold text-gray-900">Dashboard Unit</h1>
-              <p class="text-gray-500">Pilih unit kerja untuk mengisi form laporan.</p>
-            </div>
-            <input
-              id="searchInput"
-              type="text"
-              placeholder="Cari unit kerja..."
-              class="w-full mb-8 px-5 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <div id="results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-          `;
+    try {
+      // Ambil user dari Supabase
+      const { data: users, error } = await _supa
+        .from('app_users')
+        .select('id, username, password_hash, display_name, is_active')
+        .eq('username', username)
+        .eq('is_active', true)
+        .limit(1);
 
-          document
-            .getElementById("searchInput")
-            .addEventListener("input", (e) => {
-              renderResults(e.target.value);
-            });
+      if (error) throw new Error('Gagal terhubung ke server.');
+      if (!users || users.length === 0) throw new Error('Username atau password salah.');
 
-          renderResults("");
-        };
+      const user = users[0];
 
-        function renderResults(keyword) {
-          const key = keyword.trim().toLowerCase();
-          const filtered = unitsList.filter((u) =>
-            u.toLowerCase().includes(key),
-          );
-          const container = document.getElementById("results");
+      // Verifikasi password pakai bcrypt
+      const valid = await bcrypt.compare(password, user.password_hash);
+      if (!valid) throw new Error('Username atau password salah.');
 
-          if (filtered.length === 0) {
-            container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">Unit tidak ditemukan</div>`;
-            return;
-          }
+      // Simpan session (tanpa password_hash)
+      setSession({ id: user.id, username: user.username, displayName: user.display_name });
+      showMainPage(user.display_name || user.username);
 
-          container.innerHTML = filtered
-            .map(
-              (unit) => `
-            <div onclick="renderUnit('${unit}')" class="group cursor-pointer rounded-2xl p-6 bg-white border border-transparent hover:border-blue-500 hover:shadow-xl transition-all duration-300">
-              <div class="flex justify-between items-start">
-                <div class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">${unit}</div>
-                <div class="bg-blue-50 p-2 rounded-lg text-blue-600">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
-              </div>
-              <div class="mt-2 text-sm text-gray-400">${data[unit].length} Form tersedia</div>
-            </div>
-          `,
-            )
-            .join("");
-        }
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      spinner.classList.add('hidden');
+    }
+  });
 
-        window.renderUnit = function (unitName) {
-          app.innerHTML = `
-            <div class="flex items-center gap-4 mb-8">
-              <button onclick="renderHome()" class="p-3 rounded-xl bg-white border hover:bg-gray-50 transition active:scale-90 shadow-sm">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-              </button>
-              <div>
-                <h1 class="text-2xl font-bold text-gray-900">${unitName}</h1>
-                <p class="text-gray-500 text-sm">Silakan pilih jenis laporan di bawah ini</p>
-              </div>
-            </div>
-            <div class="grid gap-4">
-              ${(data[unitName] || [])
-                .map(
-                  (f) => `
-                <a href="${f.link}" target="_blank" rel="noopener" 
-                   class="flex items-center justify-between p-5 rounded-2xl bg-white border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group">
-                  <span class="font-medium text-gray-700 group-hover:text-blue-700">${f.name}</span>
-                  <svg class="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                </a>
-              `,
-                )
-                .join("")}
-            </div>
-          `;
-        };
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+  function logout() {
+    clearSession();
+    document.getElementById('mainPage').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
 
-        /* =====================
-           EVENTS & AUTH
-        ===================== */
+  // ============================================================
+  // TAMPILKAN HALAMAN UTAMA
+  // ============================================================
+  function showMainPage(displayName) {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainPage').classList.remove('hidden');
+    document.getElementById('userGreeting').textContent = `Halo, ${displayName}`;
+    loadRooms();
+  }
 
-        loginBtn.addEventListener("click", async () => {
-          const email = document.getElementById("email").value.trim();
-          const password = document.getElementById("password").value;
+  // ============================================================
+  // LOAD DATA DARI SUPABASE
+  // ============================================================
+  let ROOMS = [];
+  let activeRoomId = null;
 
-          if (!email || !password) {
-            setStatus("Email dan password wajib diisi.", true);
-            return;
-          }
+  async function loadRooms() {
+    try {
+      const { data: rooms, error: rErr } = await _supa
+        .from('rooms')
+        .select('id, name, description, sort_order')
+        .order('name', { ascending: true });
 
-          setStatus("Mengecek kredensial...", false);
-          const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+      if (rErr) throw rErr;
 
-          if (error) {
-            setStatus(error.message, true);
-          }
+      const { data: docs, error: dErr } = await _supa
+        .from('documents')
+        .select('id, room_id, title, url, category, sort_order')
+        .order('sort_order', { ascending: true });
+
+      if (dErr) throw dErr;
+
+      // Gabungkan docs ke rooms
+      ROOMS = rooms.map(r => ({
+        ...r,
+        documents: docs.filter(d => d.room_id === r.id)
+          .sort((a, b) => {
+            if (a.category !== b.category) return a.category === 'excel' ? -1 : 1;
+            return (a.sort_order || 0) - (b.sort_order || 0);
+          })
+      }));
+
+      renderSidebar();
+      renderMobileCats();
+
+      // Tampilkan room pertama
+      if (ROOMS.length > 0) {
+        selectRoom(ROOMS[0].id);
+      } else {
+        document.getElementById('content-area').innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400 text-sm">
+            Belum ada kategori. Hubungi admin untuk menambahkan data.
+          </div>`;
+      }
+
+    } catch (err) {
+      document.getElementById('content-area').innerHTML = `
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-red-600 text-sm">
+          Gagal memuat data. Periksa koneksi internet dan konfigurasi Supabase.
+        </div>`;
+    }
+  }
+
+  // ============================================================
+  // RENDER SIDEBAR
+  // ============================================================
+  function renderSidebar() {
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = ROOMS.map(room => {
+      const fc = room.documents.filter(d => d.category !== 'excel').length;
+      const ec = room.documents.filter(d => d.category === 'excel').length;
+      return `<button type="button"
+          class="sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 text-slate-700 hover:bg-slate-100"
+          data-room-id="${room.id}">
+          <span class="truncate">${esc(room.name)}</span>
+          ${room.documents.length > 0 ? `<span class="text-xs shrink-0 opacity-60">${room.documents.length}</span>` : ''}
+        </button>`;
+    }).join('');
+
+    nav.querySelectorAll('.sidebar-btn').forEach(btn => {
+      btn.addEventListener('click', () => selectRoom(btn.dataset.roomId));
+    });
+  }
+
+  // ============================================================
+  // RENDER MOBILE CATEGORY PILLS
+  // ============================================================
+  function renderMobileCats() {
+    const container = document.querySelector('#mobileCats > div');
+    container.innerHTML = ROOMS.map(room => `
+      <button type="button"
+        class="mobile-cat-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 text-slate-600 bg-slate-50 whitespace-nowrap transition"
+        data-room-id="${room.id}">
+        ${esc(room.name)}
+      </button>`).join('');
+
+    container.querySelectorAll('.mobile-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectRoom(btn.dataset.roomId);
+        btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      });
+    });
+  }
+
+  // ============================================================
+  // SELECT ROOM
+  // ============================================================
+  function selectRoom(roomId) {
+    activeRoomId = roomId;
+    const room = ROOMS.find(r => r.id === roomId);
+    if (!room) return;
+
+    // Update sidebar active state
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+      const a = btn.dataset.roomId === roomId;
+      btn.className = `sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 ${
+        a ? 'bg-blue-600 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100'}`;
+    });
+
+    // Update mobile pills active state
+    document.querySelectorAll('.mobile-cat-btn').forEach(btn => {
+      const a = btn.dataset.roomId === roomId;
+      btn.className = `mobile-cat-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition ${
+        a ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'border-slate-200 text-slate-600 bg-slate-50'}`;
+    });
+
+    // Fade dan render konten
+    const ca = document.getElementById('content-area');
+    ca.classList.add('fading');
+    setTimeout(() => {
+      ca.innerHTML = renderRoomContent(room);
+      ca.classList.remove('fading');
+    }, 100);
+  }
+
+  // ============================================================
+  // RENDER ISI ROOM
+  // ============================================================
+  function renderRoomContent(room) {
+    const fc = room.documents.filter(d => d.category !== 'excel').length;
+    const ec = room.documents.filter(d => d.category === 'excel').length;
+
+    let html = `
+      <div class="mb-5">
+        <h2 class="text-xl md:text-2xl font-bold text-slate-800">${esc(room.name)}</h2>
+        ${room.description ? `<p class="text-slate-500 text-sm mt-1">${esc(room.description)}</p>` : ''}
+        <div class="flex gap-2 mt-2 flex-wrap">
+          <span class="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-medium">${fc} Form</span>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 font-medium">${ec} Excel</span>
+        </div>
+      </div>`;
+
+    if (room.documents.length === 0) {
+      html += `<div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm">Belum ada dokumen di kategori ini.</div>`;
+    } else {
+      html += `<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">`;
+      room.documents.forEach(doc => {
+        const isExcel = doc.category === 'excel';
+        html += `
+          <a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer"
+             class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all p-4 flex items-center justify-between gap-3 group active:scale-[0.98]">
+            <span class="font-medium text-sm leading-snug text-slate-700 group-hover:text-blue-700 transition line-clamp-2">
+              ${esc(doc.title)}
+            </span>
+            <span class="text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${isExcel ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">
+              ${isExcel ? 'EXCEL' : 'FORM'}
+            </span>
+          </a>`;
+      });
+      html += `</div>`;
+    }
+    return html;
+  }
+
+  // ============================================================
+  // GLOBAL SEARCH
+  // ============================================================
+  (function () {
+    const input = document.getElementById('globalSearch');
+    const drop  = document.getElementById('searchDrop');
+
+    const norm = s => (s || '').toLowerCase().trim();
+
+    function highlight(text, q) {
+      if (!q) return esc(text);
+      const idx = norm(text).indexOf(q);
+      if (idx < 0) return esc(text);
+      return esc(text.slice(0, idx))
+           + `<mark class="bg-yellow-200 rounded px-0.5">${esc(text.slice(idx, idx + q.length))}</mark>`
+           + esc(text.slice(idx + q.length));
+    }
+
+    function doSearch(q) {
+      if (!q) { drop.classList.add('hidden'); drop.innerHTML = ''; return; }
+
+      const results = [];
+      ROOMS.forEach(room => {
+        if (norm(room.name).includes(q)) results.push({ type: 'room', room, doc: null });
+        room.documents.forEach(doc => {
+          if (norm(doc.title).includes(q)) results.push({ type: 'doc', room, doc });
         });
+      });
 
-        logoutBtn.addEventListener("click", async () => {
-          await supabase.auth.signOut();
-        });
+      if (!results.length) {
+        drop.innerHTML = `<div class="px-4 py-3 text-sm text-slate-400">Tidak ada hasil untuk "<strong>${esc(q)}</strong>"</div>`;
+        drop.classList.remove('hidden');
+        return;
+      }
 
-        supabase.auth.onAuthStateChange((event, session) => {
-          if (session) {
-            onLoginSuccess();
-          } else {
-            onLogoutSuccess();
-          }
-        });
-
-        // Helpers
-        function setStatus(msg, isError) {
-          statusMsg.textContent = msg;
-          statusMsg.className = `text-sm rounded-lg px-3 py-2 border ${isError ? "text-red-600 bg-red-50 border-red-200" : "text-gray-600 bg-gray-50 border-gray-200"}`;
+      const shown = results.slice(0, 12);
+      drop.innerHTML = shown.map(r => {
+        if (r.type === 'room') {
+          return `<button type="button" data-room-id="${esc(r.room.id)}"
+            class="search-room-btn w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3">
+            <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">Kategori</span>
+            <span class="font-medium text-sm">${highlight(r.room.name, q)}</span>
+          </button>`;
+        } else {
+          const isExcel = r.doc.category === 'excel';
+          return `<a href="${esc(r.doc.url)}" target="_blank" rel="noopener noreferrer"
+            class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3 block">
+            <span class="text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${isExcel ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${isExcel ? 'EXCEL' : 'FORM'}</span>
+            <div class="min-w-0">
+              <div class="text-sm font-medium truncate">${highlight(r.doc.title, q)}</div>
+              <div class="text-xs text-slate-400 truncate">${esc(r.room.name)}</div>
+            </div>
+          </a>`;
         }
+      }).join('');
 
-        function showLoader(show) {
-          loader.classList.toggle("hidden", !show);
-        }
-      })();
-    </script>
-  </body>
+      drop.classList.remove('hidden');
+
+      drop.querySelectorAll('.search-room-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          drop.classList.add('hidden');
+          input.value = '';
+          selectRoom(btn.dataset.roomId);
+        });
+      });
+    }
+
+    input.addEventListener('input', e => doSearch(norm(e.target.value)));
+    document.addEventListener('click', e => {
+      if (e.target !== input && !drop.contains(e.target)) drop.classList.add('hidden');
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { drop.classList.add('hidden'); input.value = ''; }
+    });
+  })();
+
+  // ============================================================
+  // UTILITIES
+  // ============================================================
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ============================================================
+  // INIT – cek session aktif
+  // ============================================================
+  (function init() {
+    const session = getSession();
+    if (session) {
+      showMainPage(session.displayName || session.username);
+    }
+  })();
+</script>
+</body>
 </html>
