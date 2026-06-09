@@ -762,8 +762,14 @@
     const label = document.getElementById('createUserBtnLabel');
     btn.disabled = true; spinner.classList.remove('hidden'); label.textContent = 'Memproses...';
     try {
-      const { error } = await _supa.auth.signUp({ email, password: pass });
+      // Pakai RPC function yang langsung insert ke auth.users
+      const { data, error } = await _supa.rpc('create_user', {
+        user_email: email,
+        user_password: pass
+      });
       if (error) throw new Error(error.message);
+      if (data && data.success === false) throw new Error(data.error || 'Gagal membuat user');
+
       if (isAdmin) {
         const { error: aErr } = await _supa.from('admin_users').insert({ email });
         if (aErr) { showToast(`User dibuat, tapi gagal jadikan admin: ${aErr.message}`, 'error'); }
