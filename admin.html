@@ -6,7 +6,6 @@
   <title>Admin – TRINITRIX</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
   <style>
     @keyframes shimmer {
       0% { background-position: -200% 0; }
@@ -346,6 +345,23 @@
   }
 
   // ============================================================
+  // PASSWORD HASHING – Web Crypto API (no external library)
+  // ============================================================
+  async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data    = encoder.encode(password);
+    const hashBuf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  async function verifyPassword(password, storedHash) {
+    const hash = await hashPassword(password);
+    return hash === storedHash;
+  }
+
+  // ============================================================
   // LOGIN ADMIN
   // ============================================================
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -371,7 +387,7 @@
       if (error) throw new Error('Gagal terhubung ke server.');
       if (!users || users.length === 0) throw new Error('Username atau password salah.');
 
-      const valid = await bcrypt.compare(password, users[0].password_hash);
+      const valid = await verifyPassword(password, users[0].password_hash);
       if (!valid) throw new Error('Username atau password salah.');
 
       setAdminSession({ id: users[0].id, username: users[0].username, displayName: users[0].display_name });
