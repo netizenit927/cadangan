@@ -6,7 +6,6 @@
   <title>TRINITRIX</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="bcrypt.min.js"></script>
   <style>
     /* Custom scrollbar sidebar */
     #sidebar::-webkit-scrollbar { width: 3px; }
@@ -50,10 +49,10 @@
 
     <form id="loginForm" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
-        <input id="loginUser" type="text" required autocomplete="username"
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+        <input id="loginUser" type="email" required autocomplete="email"
                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-               placeholder="Masukkan username" />
+               placeholder="Masukkan email" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
@@ -175,28 +174,10 @@
      ============================================================ -->
 <script>
   // ⚠️  GANTI dua baris ini dengan URL dan ANON KEY Supabase project kamu
-  const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuemJmcW9ia3JmemRzaWFoYmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NjU1NTksImV4cCI6MjA5NjU0MTU1OX0.cxkJbokUdsmRyQGNS4xDRNx7XUf319PXlzOLdzfC0kM';
+  const SUPABASE_URL  = 'GANTI_DENGAN_SUPABASE_URL';
+  const SUPABASE_ANON = 'GANTI_DENGAN_SUPABASE_ANON_KEY';
 
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-  // ============================================================
-  // SESSION (pakai sessionStorage supaya ga bocor di inspect)
-  // ============================================================
-  const SESSION_KEY = 'trx_user_session';
-
-  function getSession() {
-    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
-    catch { return null; }
-  }
-
-  function setSession(data) {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
-  }
-
-  function clearSession() {
-    sessionStorage.removeItem(SESSION_KEY);
-  }
 
   // ============================================================
   // TOGGLE PASSWORD VISIBILITY
@@ -211,7 +192,7 @@
   // ============================================================
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('loginUser').value.trim();
+    const email    = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
     const errBox   = document.getElementById('loginError');
     const btn      = document.getElementById('loginBtn');
@@ -222,26 +203,10 @@
     spinner.classList.remove('hidden');
 
     try {
-      // Ambil user dari Supabase
-      const { data: users, error } = await _supa
-        .from('app_users')
-        .select('id, username, password_hash, display_name, is_active')
-        .eq('username', username)
-        .eq('is_active', true)
-        .limit(1);
+      const { data, error } = await _supa.auth.signInWithPassword({ email, password });
+      if (error) throw new Error('Email atau password salah.');
 
-      if (error) throw new Error('Gagal terhubung ke server.');
-      if (!users || users.length === 0) throw new Error('Username atau password salah.');
-
-      const user = users[0];
-
-      // Verifikasi password pakai bcrypt
-      const valid = await bcrypt.compare(password, user.password_hash);
-      if (!valid) throw new Error('Username atau password salah.');
-
-      // Simpan session (tanpa password_hash)
-      setSession({ id: user.id, username: user.username, displayName: user.display_name });
-      showMainPage(user.display_name || user.username);
+      showMainPage(data.user.email);
 
     } catch (err) {
       errBox.textContent = err.message;
@@ -255,8 +220,8 @@
   // ============================================================
   // LOGOUT
   // ============================================================
-  function logout() {
-    clearSession();
+  async function logout() {
+    await _supa.auth.signOut();
     document.getElementById('mainPage').classList.add('hidden');
     document.getElementById('loginPage').classList.remove('hidden');
     document.getElementById('loginUser').value = '';
@@ -266,10 +231,10 @@
   // ============================================================
   // TAMPILKAN HALAMAN UTAMA
   // ============================================================
-  function showMainPage(displayName) {
+  function showMainPage(email) {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('mainPage').classList.remove('hidden');
-    document.getElementById('userGreeting').textContent = `Halo, ${displayName}`;
+    document.getElementById('userGreeting').textContent = `Halo, ${email}`;
     loadRooms();
   }
 
@@ -332,8 +297,6 @@
   function renderSidebar() {
     const nav = document.getElementById('sidebarNav');
     nav.innerHTML = ROOMS.map(room => {
-      const fc = room.documents.filter(d => d.category !== 'excel').length;
-      const ec = room.documents.filter(d => d.category === 'excel').length;
       return `<button type="button"
           class="sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 text-slate-700 hover:bg-slate-100"
           data-room-id="${room.id}">
@@ -523,12 +486,12 @@
   }
 
   // ============================================================
-  // INIT – cek session aktif
+  // INIT – cek session aktif via Supabase Auth
   // ============================================================
-  (function init() {
-    const session = getSession();
+  (async function init() {
+    const { data: { session } } = await _supa.auth.getSession();
     if (session) {
-      showMainPage(session.displayName || session.username);
+      showMainPage(session.user.email);
     }
   })();
 </script>

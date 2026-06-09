@@ -6,7 +6,6 @@
   <title>Admin – TRINITRIX</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="bcrypt.min.js"></script>
   <style>
     @keyframes shimmer {
       0% { background-position: -200% 0; }
@@ -48,10 +47,10 @@
 
     <form id="loginForm" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
-        <input id="loginUser" type="text" required autocomplete="username"
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+        <input id="loginUser" type="email" required autocomplete="email"
                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-               placeholder="Admin username" />
+               placeholder="Admin email" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
@@ -196,7 +195,7 @@
     <!-- DAFTAR KATEGORI -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
       <div class="flex items-center justify-between mb-4 gap-3">
-        <h2 class="font-semibold text-slate-800">Daftar Kategori & Link</h2>
+        <h2 class="font-semibold text-slate-800">Daftar Kategori &amp; Link</h2>
         <div class="relative flex-1 max-w-xs">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -320,22 +319,10 @@
      ============================================================ -->
 <script>
   // ⚠️  GANTI dua baris ini dengan URL dan ANON KEY Supabase project kamu
-  const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuemJmcW9ia3JmemRzaWFoYmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NjU1NTksImV4cCI6MjA5NjU0MTU1OX0.cxkJbokUdsmRyQGNS4xDRNx7XUf319PXlzOLdzfC0kM';
+  const SUPABASE_URL  = 'GANTI_DENGAN_SUPABASE_URL';
+  const SUPABASE_ANON = 'GANTI_DENGAN_SUPABASE_ANON_KEY';
 
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-  // ============================================================
-  // SESSION ADMIN
-  // ============================================================
-  const ADMIN_SESSION_KEY = 'trx_admin_session';
-
-  function getAdminSession() {
-    try { return JSON.parse(sessionStorage.getItem(ADMIN_SESSION_KEY) || 'null'); }
-    catch { return null; }
-  }
-  function setAdminSession(data) { sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(data)); }
-  function clearAdminSession() { sessionStorage.removeItem(ADMIN_SESSION_KEY); }
 
   // ============================================================
   // PASSWORD TOGGLE
@@ -346,11 +333,25 @@
   }
 
   // ============================================================
+  // VERIFY ADMIN – cek apakah email ada di tabel admin_users
+  // ============================================================
+  async function verifyAdmin(email) {
+    const { data, error } = await _supa
+      .from('admin_users')
+      .select('id, email, display_name')
+      .eq('email', email)
+      .limit(1);
+
+    if (error || !data || data.length === 0) return null;
+    return data[0];
+  }
+
+  // ============================================================
   // LOGIN ADMIN
   // ============================================================
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('loginUser').value.trim();
+    const email    = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
     const errBox   = document.getElementById('loginError');
     const btn      = document.getElementById('loginBtn');
@@ -361,20 +362,17 @@
     spinner.classList.remove('hidden');
 
     try {
-      const { data: users, error } = await _supa
-        .from('admin_users')
-        .select('id, username, password_hash, display_name, is_active')
-        .eq('username', username)
-        .eq('is_active', true)
-        .limit(1);
+      // 1. Autentikasi via Supabase Auth
+      const { data, error } = await _supa.auth.signInWithPassword({ email, password });
+      if (error) throw new Error('Email atau password salah.');
 
-      if (error) throw new Error('Gagal terhubung ke server.');
-      if (!users || users.length === 0) throw new Error('Username atau password salah.');
+      // 2. Verifikasi keberadaan email di tabel admin_users
+      const adminRecord = await verifyAdmin(data.user.email);
+      if (!adminRecord) {
+        await _supa.auth.signOut();
+        throw new Error('Akses ditolak. Akun ini bukan admin.');
+      }
 
-      const valid = await bcrypt.compare(password, users[0].password_hash);
-      if (!valid) throw new Error('Username atau password salah.');
-
-      setAdminSession({ id: users[0].id, username: users[0].username, displayName: users[0].display_name });
       showAdminPage();
 
     } catch (err) {
@@ -389,8 +387,8 @@
   // ============================================================
   // LOGOUT
   // ============================================================
-  function adminLogout() {
-    clearAdminSession();
+  async function adminLogout() {
+    await _supa.auth.signOut();
     document.getElementById('adminPage').classList.add('hidden');
     document.getElementById('loginPage').classList.remove('hidden');
     document.getElementById('loginUser').value = '';
@@ -595,7 +593,7 @@
     const id   = document.getElementById('editRoomId').value;
     const name = document.getElementById('editRoomName').value.trim();
     const desc = document.getElementById('editRoomDesc').value.trim();
-    if (!name) { showToast('Nama tidak boleh kosong', 'error'); return; }
+    if (!name) { showToast('Nama kategori tidak boleh kosong', 'error'); return; }
 
     const { error } = await _supa.from('rooms').update({ name, description: desc }).eq('id', id);
     if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
@@ -720,11 +718,23 @@
   }
 
   // ============================================================
-  // INIT
+  // INIT – cek session aktif dan verifikasi admin
   // ============================================================
-  (function init() {
-    const session = getAdminSession();
-    if (session) showAdminPage();
+  (async function init() {
+    const { data: { session } } = await _supa.auth.getSession();
+    if (!session) return; // tetap di login page
+
+    // Verifikasi bahwa user yang sudah login adalah admin
+    const adminRecord = await verifyAdmin(session.user.email);
+    if (!adminRecord) {
+      await _supa.auth.signOut();
+      const errBox = document.getElementById('loginError');
+      errBox.textContent = 'Akses ditolak. Akun ini bukan admin.';
+      errBox.classList.remove('hidden');
+      return;
+    }
+
+    showAdminPage();
   })();
 </script>
 </body>
