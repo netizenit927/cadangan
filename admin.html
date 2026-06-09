@@ -16,8 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
     }
     .skeleton {
       background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -25,11 +25,17 @@
       animation: shimmer 1.4s infinite;
       border-radius: 8px;
     }
-
-    /* Modal backdrop */
     .modal-backdrop {
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
+    }
+    #mobileSidebar { transition: transform 0.25s cubic-bezier(.4,0,.2,1); }
+    .sidebar-hidden { transform: translateX(-100%); }
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
     }
   </style>
 </head>
@@ -90,216 +96,344 @@
 <!-- ============================================================
      HALAMAN ADMIN
      ============================================================ -->
-<div id="adminPage" class="hidden">
+<div id="adminPage" class="hidden min-h-screen flex flex-col">
 
   <!-- HEADER -->
-  <header class="bg-slate-800 sticky top-0 z-30 shadow-md">
-    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <span class="text-white font-bold">TRINITRIX</span>
-        <span class="text-slate-400 text-xs hidden sm:block">Admin Panel</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="index.html" target="_blank"
-           class="text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 transition flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-          </svg>
-          Lihat Publik
-        </a>
-        <button onclick="adminLogout()"
-                class="text-xs px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition">
-          Logout
-        </button>
-      </div>
+  <header class="bg-slate-800 fixed top-0 left-0 right-0 z-30 shadow-md h-14 flex items-center px-4 gap-3">
+    <button onclick="openMobileMenu()"
+            class="md:hidden text-white p-1.5 rounded-lg hover:bg-slate-700 transition shrink-0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <span class="text-white font-bold text-lg">TRINITRIX</span>
+    <span class="text-slate-400 text-xs hidden sm:block">Admin Panel</span>
+    <div class="ml-auto flex items-center gap-2">
+      <a href="index.html" target="_blank"
+         class="text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 transition hidden sm:flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        Lihat Publik
+      </a>
+      <button onclick="adminLogout()"
+              class="text-xs px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white transition">
+        Logout
+      </button>
     </div>
   </header>
 
-  <!-- TOAST NOTIFICATION -->
-  <div id="toast" class="hidden fixed top-4 right-4 z-50 bg-white border border-slate-200 shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-sm">
-    <svg id="toastIcon" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-    <span id="toastMsg"></span>
-  </div>
+  <div class="flex flex-1 pt-14">
 
-  <div class="max-w-6xl mx-auto p-4 md:p-6 pb-16">
-
-    <!-- STATS BAR -->
-    <div id="statsBar" class="grid grid-cols-3 gap-3 mb-6">
-      <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center">
-        <div id="statRooms" class="skeleton h-7 w-12 mx-auto mb-1"></div>
-        <div class="text-xs text-slate-500">Kategori</div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center">
-        <div id="statForms" class="skeleton h-7 w-12 mx-auto mb-1"></div>
-        <div class="text-xs text-slate-500">Form</div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center">
-        <div id="statExcels" class="skeleton h-7 w-12 mx-auto mb-1"></div>
-        <div class="text-xs text-slate-500">Excel</div>
-      </div>
-    </div>
-
-    <!-- TAMBAH KATEGORI -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-5">
-      <h2 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xs">+</span>
-        Tambah Kategori Baru
-      </h2>
-      <div class="flex flex-col sm:flex-row gap-3">
-        <input id="newRoomName" type="text" placeholder="Nama kategori (wajib)"
-               class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
-        <input id="newRoomDesc" type="text" placeholder="Deskripsi (opsional)"
-               class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
-        <button onclick="addRoom()"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition shrink-0">
-          Tambah
-        </button>
-      </div>
-    </div>
-
-    <!-- TAMBAH LINK -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-5">
-      <h2 class="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-        <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-xs">🔗</span>
-        Tambah Link ke Kategori
-      </h2>
-      <div class="space-y-3">
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-medium text-slate-600 block mb-1.5">Pilih Kategori</label>
-            <select id="docRoomId"
-                    class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white">
-              <option value="">-- Pilih Kategori --</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs font-medium text-slate-600 block mb-1.5">Tipe</label>
-            <select id="docCategory"
-                    class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white">
-              <option value="form">Form (Biru)</option>
-              <option value="excel">Excel (Hijau)</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-medium text-slate-600 block mb-1.5">Judul Link</label>
-            <input id="docTitle" type="text" placeholder="Nama dokumen / form"
-                   class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
-          </div>
-          <div>
-            <label class="text-xs font-medium text-slate-600 block mb-1.5">URL</label>
-            <input id="docUrl" type="url" placeholder="https://..."
-                   class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
-          </div>
-        </div>
-        <button onclick="addDoc()"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition">
-          Tambah Link
-        </button>
-      </div>
-    </div>
-
-    <!-- DAFTAR KATEGORI -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div class="flex items-center justify-between mb-4 gap-3">
-        <h2 class="font-semibold text-slate-800">Daftar Kategori &amp; Link</h2>
-        <div class="relative flex-1 max-w-xs">
-          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="hidden md:flex flex-col fixed left-0 top-14 bottom-0 w-52 bg-slate-800 z-20 border-r border-slate-700">
+      <nav class="flex-1 py-4 px-3 space-y-1">
+        <button onclick="switchPage('rooms')" id="nav-rooms"
+                class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
           </svg>
-          <input id="adminSearch" type="text" placeholder="Cari..."
-                 class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+          Kategori &amp; Form
+        </button>
+        <button onclick="switchPage('add')" id="nav-add"
+                class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Tambah Form
+        </button>
+        <button onclick="switchPage('users')" id="nav-users"
+                class="sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-5-4m0 6H2v-2a4 4 0 015-4m0 0a4 4 0 108 0m-4-4a4 4 0 100-8 4 4 0 000 8z"/>
+          </svg>
+          Kelola User
+        </button>
+      </nav>
+    </aside>
+
+    <!-- MOBILE OVERLAY -->
+    <div id="mobileOverlay" class="hidden fixed inset-0 z-40 bg-black/50 md:hidden" onclick="closeMobileMenu()"></div>
+
+    <!-- SIDEBAR MOBILE DRAWER -->
+    <aside id="mobileSidebar" class="sidebar-hidden fixed left-0 top-0 bottom-0 w-64 bg-slate-800 z-50 flex flex-col shadow-2xl md:hidden">
+      <div class="flex items-center justify-between px-4 h-14 border-b border-slate-700 shrink-0">
+        <span class="text-white font-bold">TRINITRIX</span>
+        <button onclick="closeMobileMenu()" class="text-slate-400 hover:text-white transition p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <button onclick="switchPage('rooms'); closeMobileMenu();" id="mnav-rooms"
+                class="mobile-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+          Kategori &amp; Form
+        </button>
+        <button onclick="switchPage('add'); closeMobileMenu();" id="mnav-add"
+                class="mobile-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Tambah Form
+        </button>
+        <button onclick="switchPage('users'); closeMobileMenu();" id="mnav-users"
+                class="mobile-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition text-left">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-5-4m0 6H2v-2a4 4 0 015-4m0 0a4 4 0 108 0m-4-4a4 4 0 100-8 4 4 0 000 8z"/>
+          </svg>
+          Kelola User
+        </button>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 md:ml-52 min-h-full">
+
+      <!-- TOAST -->
+      <div id="toast" class="hidden fixed top-16 right-4 z-50 bg-white border shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-xs">
+        <svg id="toastIcon" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+        <span id="toastMsg"></span>
+      </div>
+
+      <!-- PAGE: KATEGORI & FORM -->
+      <section id="page-rooms" class="p-4 md:p-6 pb-16">
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+            <div id="statRooms" class="skeleton h-7 w-12 mx-auto mb-1"></div>
+            <div class="text-xs text-slate-500 font-medium">Kategori</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+            <div id="statForms" class="skeleton h-7 w-12 mx-auto mb-1"></div>
+            <div class="text-xs text-slate-500 font-medium">Total Form</div>
+          </div>
         </div>
-      </div>
 
-      <div id="roomList" class="space-y-3">
-        <!-- Skeleton -->
-        <div class="skeleton h-14"></div>
-        <div class="skeleton h-14"></div>
-        <div class="skeleton h-14"></div>
-      </div>
-      <div id="noMatch" class="hidden mt-4 text-slate-400 text-sm text-center py-4">Tidak ada hasil yang cocok.</div>
-    </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+            <h2 class="font-semibold text-slate-800">Daftar Kategori &amp; Form</h2>
+            <div class="relative w-full sm:w-64">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input id="adminSearch" type="text" placeholder="Cari kategori atau form..."
+                     class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+            </div>
+          </div>
+          <div id="roomList" class="space-y-3">
+            <div class="skeleton h-14 rounded-2xl"></div>
+            <div class="skeleton h-14 rounded-2xl"></div>
+            <div class="skeleton h-14 rounded-2xl"></div>
+          </div>
+          <div id="noMatch" class="hidden mt-4 text-slate-400 text-sm text-center py-6">Tidak ada hasil yang cocok.</div>
+        </div>
+      </section>
 
+      <!-- PAGE: TAMBAH FORM -->
+      <section id="page-add" class="hidden p-4 md:p-6 pb-16">
+        <h2 class="text-lg font-semibold text-slate-800 mb-5">Tambah Form</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 text-sm">Tambah Kategori Baru</h3>
+                <p class="text-xs text-slate-500">Buat grup / folder baru</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Nama Kategori <span class="text-red-500">*</span></label>
+                <input id="newRoomName" type="text" placeholder="Contoh: IGD"
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Deskripsi <span class="text-slate-400">(opsional)</span></label>
+                <input id="newRoomDesc" type="text" placeholder="Deskripsi singkat"
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <button onclick="addRoom()"
+                      class="w-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Buat Kategori
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 text-sm">Tambah Link Form</h3>
+                <p class="text-xs text-slate-500">Tambahkan link ke kategori yang ada</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Pilih Kategori <span class="text-red-500">*</span></label>
+                <select id="docRoomId"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white">
+                  <option value="">-- Pilih Kategori --</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Judul Form <span class="text-red-500">*</span></label>
+                <input id="docTitle" type="text" placeholder="Nama form / dokumen"
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">URL <span class="text-red-500">*</span></label>
+                <input id="docUrl" type="url" placeholder="https://..."
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <button onclick="addDoc()"
+                      class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Tambah Link Form
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- PAGE: KELOLA USER -->
+      <section id="page-users" class="hidden p-4 md:p-6 pb-16">
+        <h2 class="text-lg font-semibold text-slate-800 mb-5">Kelola User</h2>
+        <div class="grid md:grid-cols-2 gap-5 items-start">
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 text-sm">Buat User Baru</h3>
+                <p class="text-xs text-slate-500">Daftarkan akun baru</p>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Email <span class="text-red-500">*</span></label>
+                <input id="newUserEmail" type="email" placeholder="user@example.com"
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-600 block mb-1.5">Password <span class="text-red-500">*</span></label>
+                <input id="newUserPass" type="password" placeholder="Minimal 6 karakter"
+                       class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+              </div>
+              <label class="flex items-center gap-2 cursor-pointer select-none py-1">
+                <input id="newUserIsAdmin" type="checkbox" class="w-4 h-4 rounded text-blue-600 border-slate-300" />
+                <span class="text-sm text-slate-700">Jadikan admin</span>
+              </label>
+              <button onclick="createUser()" id="createUserBtn"
+                      class="w-full bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition flex items-center justify-center gap-2">
+                <span id="createUserBtnLabel">Buat User</span>
+                <svg id="createUserSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-slate-800 text-sm">Daftar Admin</h3>
+                  <p class="text-xs text-slate-500">Dari tabel admin_users</p>
+                </div>
+              </div>
+              <button onclick="loadAdminUsers()" class="text-xs text-blue-600 hover:text-blue-700 font-medium transition">
+                Refresh
+              </button>
+            </div>
+            <div id="adminUserList" class="space-y-2">
+              <div class="skeleton h-10 rounded-xl"></div>
+              <div class="skeleton h-10 rounded-xl"></div>
+            </div>
+            <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700">
+              <strong>Catatan:</strong> Tombol hapus hanya menghapus dari tabel <code>admin_users</code>. Untuk hapus akun sepenuhnya gunakan <strong>Supabase Dashboard → Authentication → Users</strong>.
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
   </div>
 </div>
 
-<!-- ============================================================
-     MODAL EDIT KATEGORI
-     ============================================================ -->
+<!-- MODAL EDIT KATEGORI -->
 <div id="editRoomModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/40">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
     <h3 class="font-semibold text-slate-800 mb-4">Edit Kategori</h3>
     <input type="hidden" id="editRoomId" />
-    <div class="space-y-3 mb-4">
+    <div class="space-y-3 mb-5">
       <div>
         <label class="text-xs font-medium text-slate-600 block mb-1.5">Nama Kategori</label>
-        <input id="editRoomName" type="text"
-               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+        <input id="editRoomName" type="text" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
       </div>
       <div>
         <label class="text-xs font-medium text-slate-600 block mb-1.5">Deskripsi</label>
-        <input id="editRoomDesc" type="text"
-               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+        <input id="editRoomDesc" type="text" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
       </div>
     </div>
     <div class="flex gap-3">
-      <button onclick="saveEditRoom()"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium text-sm transition">
-        Simpan
-      </button>
-      <button onclick="closeModal('editRoomModal')"
-              class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">
-        Batal
-      </button>
+      <button onclick="saveEditRoom()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium text-sm transition">Simpan</button>
+      <button onclick="closeModal('editRoomModal')" class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-     MODAL EDIT LINK
-     ============================================================ -->
+<!-- MODAL EDIT LINK -->
 <div id="editDocModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/40">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-    <h3 class="font-semibold text-slate-800 mb-4">Edit Link</h3>
+    <h3 class="font-semibold text-slate-800 mb-4">Edit Link Form</h3>
     <input type="hidden" id="editDocId" />
-    <div class="space-y-3 mb-4">
-      <div>
-        <label class="text-xs font-medium text-slate-600 block mb-1.5">Tipe</label>
-        <select id="editDocCategory"
-                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white">
-          <option value="form">Form (Biru)</option>
-          <option value="excel">Excel (Hijau)</option>
-        </select>
-      </div>
+    <div class="space-y-3 mb-5">
       <div>
         <label class="text-xs font-medium text-slate-600 block mb-1.5">Judul</label>
-        <input id="editDocTitle" type="text"
-               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+        <input id="editDocTitle" type="text" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
       </div>
       <div>
         <label class="text-xs font-medium text-slate-600 block mb-1.5">URL</label>
-        <input id="editDocUrl" type="url"
-               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+        <input id="editDocUrl" type="url" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
       </div>
     </div>
     <div class="flex gap-3">
-      <button onclick="saveEditDoc()"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium text-sm transition">
-        Simpan
-      </button>
-      <button onclick="closeModal('editDocModal')"
-              class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">
-        Batal
-      </button>
+      <button onclick="saveEditDoc()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium text-sm transition">Simpan</button>
+      <button onclick="closeModal('editDocModal')" class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-     MODAL KONFIRMASI HAPUS
-     ============================================================ -->
+<!-- MODAL KONFIRMASI HAPUS -->
 <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/40">
   <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center">
     <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -310,80 +444,48 @@
     <h3 class="font-semibold text-slate-800 mb-2">Konfirmasi Hapus</h3>
     <p id="confirmMsg" class="text-sm text-slate-500 mb-5"></p>
     <div class="flex gap-3">
-      <button id="confirmYes"
-              class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition">
-        Hapus
-      </button>
-      <button onclick="closeModal('confirmModal')"
-              class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">
-        Batal
-      </button>
+      <button id="confirmYes" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-medium text-sm transition">Hapus</button>
+      <button onclick="closeModal('confirmModal')" class="flex-1 border border-slate-200 text-slate-600 hover:bg-slate-50 py-2.5 rounded-xl font-medium text-sm transition">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- ============================================================
-     CONFIG & SCRIPT
-     ============================================================ -->
 <script>
-  // ⚠️  GANTI dua baris ini dengan URL dan ANON KEY Supabase project kamu
-const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
+  const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuemJmcW9ia3JmemRzaWFoYmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NjU1NTksImV4cCI6MjA5NjU0MTU1OX0.cxkJbokUdsmRyQGNS4xDRNx7XUf319PXlzOLdzfC0kM';
-
-
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ============================================================
-  // PASSWORD TOGGLE
-  // ============================================================
+  let currentPage = 'rooms';
+  let ROOMS = [], DOCS = [];
+  const openRooms = new Set();
+
   function togglePassVis() {
     const inp = document.getElementById('loginPass');
     inp.type = inp.type === 'password' ? 'text' : 'password';
   }
 
-  // ============================================================
-  // VERIFY ADMIN – cek apakah email ada di tabel admin_users
-  // ============================================================
   async function verifyAdmin(email) {
-    const { data, error } = await _supa
-      .from('admin_users')
-      .select('id, email, display_name')
-      .eq('email', email)
-      .limit(1);
-
+    const { data, error } = await _supa.from('admin_users').select('id,email,display_name').eq('email', email).limit(1);
     if (error || !data || data.length === 0) return null;
     return data[0];
   }
 
-  // ============================================================
-  // LOGIN ADMIN
-  // ============================================================
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email    = document.getElementById('loginUser').value.trim();
+    const email = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
-    const errBox   = document.getElementById('loginError');
-    const btn      = document.getElementById('loginBtn');
-    const spinner  = document.getElementById('loginSpinner');
-
+    const errBox = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    const spinner = document.getElementById('loginSpinner');
     errBox.classList.add('hidden');
     btn.disabled = true;
     spinner.classList.remove('hidden');
-
     try {
-      // 1. Autentikasi via Supabase Auth
       const { data, error } = await _supa.auth.signInWithPassword({ email, password });
       if (error) throw new Error('Email atau password salah.');
-
-      // 2. Verifikasi keberadaan email di tabel admin_users
       const adminRecord = await verifyAdmin(data.user.email);
-      if (!adminRecord) {
-        await _supa.auth.signOut();
-        throw new Error('Akses ditolak. Akun ini bukan admin.');
-      }
-
+      if (!adminRecord) { await _supa.auth.signOut(); throw new Error('Akses ditolak. Akun ini bukan admin.'); }
       showAdminPage();
-
     } catch (err) {
       errBox.textContent = err.message;
       errBox.classList.remove('hidden');
@@ -393,9 +495,6 @@ const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
     }
   });
 
-  // ============================================================
-  // LOGOUT
-  // ============================================================
   async function adminLogout() {
     await _supa.auth.signOut();
     document.getElementById('adminPage').classList.add('hidden');
@@ -404,193 +503,186 @@ const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
     document.getElementById('loginPass').value = '';
   }
 
-  // ============================================================
-  // TAMPILKAN ADMIN PAGE
-  // ============================================================
   function showAdminPage() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('adminPage').classList.remove('hidden');
+    switchPage('rooms');
     loadData();
   }
 
-  // ============================================================
-  // DATA STATE
-  // ============================================================
-  let ROOMS = [];
-  let DOCS  = [];
+  function switchPage(page) {
+    currentPage = page;
+    ['rooms','add','users'].forEach(p => document.getElementById('page-'+p).classList.add('hidden'));
+    document.getElementById('page-'+page).classList.remove('hidden');
 
-  // ============================================================
-  // LOAD DATA
-  // ============================================================
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+      el.classList.remove('bg-blue-600','text-white');
+      el.classList.add('text-slate-300');
+    });
+    const nav = document.getElementById('nav-'+page);
+    if (nav) { nav.classList.add('bg-blue-600','text-white'); nav.classList.remove('text-slate-300'); }
+
+    document.querySelectorAll('.mobile-sidebar-item').forEach(el => {
+      el.classList.remove('bg-blue-600','text-white');
+      el.classList.add('text-slate-300');
+    });
+    const mnav = document.getElementById('mnav-'+page);
+    if (mnav) { mnav.classList.add('bg-blue-600','text-white'); mnav.classList.remove('text-slate-300'); }
+
+    if (page === 'users') loadAdminUsers();
+  }
+
+  function openMobileMenu() {
+    document.getElementById('mobileSidebar').classList.remove('sidebar-hidden');
+    document.getElementById('mobileOverlay').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileMenu() {
+    document.getElementById('mobileSidebar').classList.add('sidebar-hidden');
+    document.getElementById('mobileOverlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
   async function loadData() {
     try {
-      const [roomsRes, docsRes] = await Promise.all([
+      const [rRes, dRes] = await Promise.all([
         _supa.from('rooms').select('*').order('name', { ascending: true }),
         _supa.from('documents').select('*').order('sort_order', { ascending: true })
       ]);
-
-      if (roomsRes.error) throw roomsRes.error;
-      if (docsRes.error) throw docsRes.error;
-
-      ROOMS = roomsRes.data || [];
-      DOCS  = docsRes.data  || [];
-
+      if (rRes.error) throw rRes.error;
+      if (dRes.error) throw dRes.error;
+      ROOMS = rRes.data || [];
+      DOCS  = dRes.data  || [];
       updateStats();
       populateRoomSelect();
       renderRoomList();
-
     } catch (err) {
       showToast('Gagal memuat data: ' + err.message, 'error');
     }
   }
 
-  // ============================================================
-  // UPDATE STATS
-  // ============================================================
   function updateStats() {
-    const forms  = DOCS.filter(d => d.category === 'form').length;
-    const excels = DOCS.filter(d => d.category === 'excel').length;
-
-    document.getElementById('statRooms').outerHTML  = `<div id="statRooms" class="text-2xl font-bold text-slate-800">${ROOMS.length}</div>`;
-    document.getElementById('statForms').outerHTML  = `<div id="statForms" class="text-2xl font-bold text-blue-600">${forms}</div>`;
-    document.getElementById('statExcels').outerHTML = `<div id="statExcels" class="text-2xl font-bold text-emerald-600">${excels}</div>`;
+    const forms = DOCS.filter(d => d.category === 'form').length;
+    document.getElementById('statRooms').outerHTML = `<div id="statRooms" class="text-2xl font-bold text-slate-800">${ROOMS.length}</div>`;
+    document.getElementById('statForms').outerHTML = `<div id="statForms" class="text-2xl font-bold text-blue-600">${forms}</div>`;
   }
 
-  // ============================================================
-  // POPULATE SELECT KATEGORI
-  // ============================================================
   function populateRoomSelect() {
-    const sel = document.getElementById('docRoomId');
-    sel.innerHTML = `<option value="">-- Pilih Kategori --</option>` +
+    document.getElementById('docRoomId').innerHTML =
+      `<option value="">-- Pilih Kategori --</option>` +
       ROOMS.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
   }
 
-  // ============================================================
-  // RENDER ROOM LIST
-  // ============================================================
   function renderRoomList(filter = '') {
     const q = filter.toLowerCase().trim();
     const list = document.getElementById('roomList');
     const noMatch = document.getElementById('noMatch');
-
-    let anyVisible = false;
-    let html = '';
+    let anyVisible = false, html = '';
 
     ROOMS.forEach(room => {
-      const docs = DOCS.filter(d => d.room_id === room.id)
-        .sort((a, b) => {
-          if (a.category !== b.category) return a.category === 'excel' ? -1 : 1;
-          return (a.sort_order || 0) - (b.sort_order || 0);
-        });
-
-      const fc = docs.filter(d => d.category !== 'excel').length;
-      const ec = docs.filter(d => d.category === 'excel').length;
-
-      const nameMatch  = room.name.toLowerCase().includes(q);
-      const docMatches = docs.filter(d => !q || d.title.toLowerCase().includes(q) || nameMatch);
-
+      const docs = DOCS.filter(d => d.room_id === room.id && d.category === 'form')
+        .sort((a, b) => (a.sort_order||0) - (b.sort_order||0));
+      const nameMatch = room.name.toLowerCase().includes(q);
+      const docMatches = docs.filter(d => d.title.toLowerCase().includes(q) || d.url.toLowerCase().includes(q));
       if (q && !nameMatch && docMatches.length === 0) return;
       anyVisible = true;
 
-      const displayDocs = q && !nameMatch ? docMatches : docs;
+      const displayDocs = (q && !nameMatch) ? docMatches : docs;
+      const isOpen = openRooms.has(room.id) || (q && docMatches.length > 0);
 
       html += `
         <div class="border border-slate-200 rounded-2xl overflow-hidden">
-          <!-- Header -->
-          <div class="bg-slate-50 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-            <div class="min-w-0">
-              <div class="font-semibold text-slate-800 truncate">${esc(room.name)}</div>
-              ${room.description ? `<div class="text-xs text-slate-500 truncate">${esc(room.description)}</div>` : ''}
+          <div class="bg-slate-50 hover:bg-slate-100 transition cursor-pointer px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+               onclick="toggleRoom('${room.id}')">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <svg id="chevron-${room.id}" class="w-4 h-4 text-slate-400 shrink-0 transition-transform ${isOpen?'rotate-90':''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-800 truncate">${esc(room.name)}</div>
+                ${room.description ? `<div class="text-xs text-slate-500 truncate">${esc(room.description)}</div>` : ''}
+              </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap shrink-0">
-              <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">${fc} Form</span>
-              <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">${ec} Excel</span>
-              <button onclick="openEditRoomModal('${room.id}','${escAttr(room.name)}','${escAttr(room.description || '')}')"
+            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+              <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">${displayDocs.length} Form</span>
+              <button onclick="event.stopPropagation();openEditRoomModal('${room.id}','${escAttr(room.name)}','${escAttr(room.description||'')}')"
                       class="text-xs px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition">Edit</button>
-              <button onclick="confirmDelete('room','${room.id}','${escAttr(room.name)}')"
+              <button onclick="event.stopPropagation();confirmDelete('room','${room.id}','${escAttr(room.name)}')"
                       class="text-xs px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition">Hapus</button>
             </div>
           </div>
-
-          <!-- Docs -->
-          ${displayDocs.length === 0 ? `<div class="px-4 py-3 text-xs text-slate-400 italic">Belum ada link.</div>` :
-            `<div class="divide-y divide-slate-100">` +
-            displayDocs.map(doc => {
-              const isExcel = doc.category === 'excel';
-              return `
-                <div class="px-4 py-3 flex items-start justify-between gap-3">
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${isExcel ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${isExcel ? 'EXCEL' : 'FORM'}</span>
-                      <span class="font-medium text-sm text-slate-700 truncate">${esc(doc.title)}</span>
+          <div id="docs-${room.id}" class="${isOpen?'':'hidden'}">
+            ${displayDocs.length === 0
+              ? `<div class="px-4 py-3 text-xs text-slate-400 italic">Belum ada form.</div>`
+              : `<div class="divide-y divide-slate-100">` +
+                displayDocs.map(doc => `
+                  <div class="px-4 py-3 flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                      <div class="font-medium text-sm text-slate-700 truncate">${esc(doc.title)}</div>
+                      <a href="${esc(doc.url)}" target="_blank" rel="noopener"
+                         class="text-xs text-slate-400 hover:text-blue-600 break-all mt-0.5 block line-clamp-1">${esc(doc.url)}</a>
                     </div>
-                    <a href="${esc(doc.url)}" target="_blank" rel="noopener"
-                       class="text-xs text-slate-400 hover:text-blue-600 break-all mt-0.5 block line-clamp-1">${esc(doc.url)}</a>
-                  </div>
-                  <div class="flex gap-2 shrink-0">
-                    <button onclick="openEditDocModal('${doc.id}','${escAttr(doc.title)}','${escAttr(doc.url)}','${doc.category}')"
-                            class="text-xs px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition">Edit</button>
-                    <button onclick="confirmDelete('doc','${doc.id}','${escAttr(doc.title)}')"
-                            class="text-xs px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition">Hapus</button>
-                  </div>
-                </div>`;
-            }).join('') +
-            `</div>`
-          }
+                    <div class="flex gap-2 shrink-0">
+                      <button onclick="openEditDocModal('${doc.id}','${escAttr(doc.title)}','${escAttr(doc.url)}')"
+                              class="text-xs px-3 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition">Edit</button>
+                      <button onclick="confirmDelete('doc','${doc.id}','${escAttr(doc.title)}')"
+                              class="text-xs px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition">Hapus</button>
+                    </div>
+                  </div>`).join('') +
+                `</div>`
+            }
+          </div>
         </div>`;
     });
 
     list.innerHTML = html || '';
-    noMatch.classList.toggle('hidden', anyVisible || !q);
+    noMatch.classList.toggle('hidden', anyVisible || !q || ROOMS.length === 0);
   }
 
-  // ============================================================
-  // TAMBAH KATEGORI
-  // ============================================================
+  function toggleRoom(roomId) {
+    const el = document.getElementById('docs-'+roomId);
+    const ch = document.getElementById('chevron-'+roomId);
+    if (!el) return;
+    if (el.classList.contains('hidden')) {
+      el.classList.remove('hidden');
+      openRooms.add(roomId);
+      ch && ch.classList.add('rotate-90');
+    } else {
+      el.classList.add('hidden');
+      openRooms.delete(roomId);
+      ch && ch.classList.remove('rotate-90');
+    }
+  }
+
   async function addRoom() {
     const name = document.getElementById('newRoomName').value.trim();
     const desc = document.getElementById('newRoomDesc').value.trim();
     if (!name) { showToast('Nama kategori tidak boleh kosong', 'error'); return; }
-
     const { error } = await _supa.from('rooms').insert({ name, description: desc, sort_order: ROOMS.length });
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-
+    if (error) { showToast('Gagal: '+error.message, 'error'); return; }
     document.getElementById('newRoomName').value = '';
     document.getElementById('newRoomDesc').value = '';
     showToast(`Kategori "${name}" berhasil ditambahkan`);
     await loadData();
   }
 
-  // ============================================================
-  // TAMBAH LINK
-  // ============================================================
   async function addDoc() {
-    const roomId   = document.getElementById('docRoomId').value;
-    const title    = document.getElementById('docTitle').value.trim();
-    const url      = document.getElementById('docUrl').value.trim();
-    const category = document.getElementById('docCategory').value;
-
+    const roomId = document.getElementById('docRoomId').value;
+    const title  = document.getElementById('docTitle').value.trim();
+    const url    = document.getElementById('docUrl').value.trim();
     if (!roomId) { showToast('Pilih kategori terlebih dahulu', 'error'); return; }
-    if (!title)  { showToast('Judul link tidak boleh kosong', 'error'); return; }
+    if (!title)  { showToast('Judul form tidak boleh kosong', 'error'); return; }
     if (!url)    { showToast('URL tidak boleh kosong', 'error'); return; }
-
-    const maxOrder = Math.max(0, ...DOCS.filter(d => d.room_id === roomId).map(d => d.sort_order || 0));
-
-    const { error } = await _supa.from('documents').insert({
-      room_id: roomId, title, url, category, sort_order: maxOrder + 1
-    });
-
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-
+    const maxOrder = Math.max(0, ...DOCS.filter(d => d.room_id === roomId).map(d => d.sort_order||0));
+    const { error } = await _supa.from('documents').insert({ room_id: roomId, title, url, category: 'form', sort_order: maxOrder+1 });
+    if (error) { showToast('Gagal: '+error.message, 'error'); return; }
     document.getElementById('docTitle').value = '';
     document.getElementById('docUrl').value   = '';
-    showToast(`Link "${title}" berhasil ditambahkan`);
+    showToast(`Form "${title}" berhasil ditambahkan`);
     await loadData();
   }
 
-  // ============================================================
-  // MODAL EDIT KATEGORI
-  // ============================================================
   function openEditRoomModal(id, name, desc) {
     document.getElementById('editRoomId').value   = id;
     document.getElementById('editRoomName').value = name;
@@ -602,53 +694,40 @@ const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
     const id   = document.getElementById('editRoomId').value;
     const name = document.getElementById('editRoomName').value.trim();
     const desc = document.getElementById('editRoomDesc').value.trim();
-    if (!name) { showToast('Nama kategori tidak boleh kosong', 'error'); return; }
-
+    if (!name) { showToast('Nama tidak boleh kosong', 'error'); return; }
     const { error } = await _supa.from('rooms').update({ name, description: desc }).eq('id', id);
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-
+    if (error) { showToast('Gagal: '+error.message, 'error'); return; }
     closeModal('editRoomModal');
     showToast('Kategori berhasil diperbarui');
     await loadData();
   }
 
-  // ============================================================
-  // MODAL EDIT LINK
-  // ============================================================
-  function openEditDocModal(id, title, url, category) {
-    document.getElementById('editDocId').value       = id;
-    document.getElementById('editDocTitle').value    = title;
-    document.getElementById('editDocUrl').value      = url;
-    document.getElementById('editDocCategory').value = category;
+  function openEditDocModal(id, title, url) {
+    document.getElementById('editDocId').value    = id;
+    document.getElementById('editDocTitle').value = title;
+    document.getElementById('editDocUrl').value   = url;
     document.getElementById('editDocModal').classList.remove('hidden');
   }
 
   async function saveEditDoc() {
-    const id       = document.getElementById('editDocId').value;
-    const title    = document.getElementById('editDocTitle').value.trim();
-    const url      = document.getElementById('editDocUrl').value.trim();
-    const category = document.getElementById('editDocCategory').value;
-    if (!title || !url) { showToast('Judul dan URL tidak boleh kosong', 'error'); return; }
-
-    const { error } = await _supa.from('documents').update({ title, url, category }).eq('id', id);
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-
+    const id    = document.getElementById('editDocId').value;
+    const title = document.getElementById('editDocTitle').value.trim();
+    const url   = document.getElementById('editDocUrl').value.trim();
+    if (!title||!url) { showToast('Judul dan URL tidak boleh kosong', 'error'); return; }
+    const { error } = await _supa.from('documents').update({ title, url, category: 'form' }).eq('id', id);
+    if (error) { showToast('Gagal: '+error.message, 'error'); return; }
     closeModal('editDocModal');
     showToast('Link berhasil diperbarui');
     await loadData();
   }
 
-  // ============================================================
-  // MODAL KONFIRMASI HAPUS
-  // ============================================================
   let _pendingDelete = null;
 
   function confirmDelete(type, id, name) {
     _pendingDelete = { type, id };
-    const msg = type === 'room'
-      ? `Hapus kategori "<strong>${esc(name)}</strong>"? Semua link di dalamnya ikut terhapus.`
-      : `Hapus link "<strong>${esc(name)}</strong>"?`;
-    document.getElementById('confirmMsg').innerHTML = msg;
+    document.getElementById('confirmMsg').innerHTML = type === 'room'
+      ? `Hapus kategori "<strong>${esc(name)}</strong>"? Semua form di dalamnya ikut terhapus.`
+      : `Hapus form "<strong>${esc(name)}</strong>"?`;
     document.getElementById('confirmModal').classList.remove('hidden');
     document.getElementById('confirmYes').onclick = executeDelete;
   }
@@ -658,82 +737,112 @@ const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
     const { type, id } = _pendingDelete;
     _pendingDelete = null;
     closeModal('confirmModal');
-
-    const table = type === 'room' ? 'rooms' : 'documents';
-    const { error } = await _supa.from(table).delete().eq('id', id);
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-
-    showToast(type === 'room' ? 'Kategori berhasil dihapus' : 'Link berhasil dihapus');
+    const { error } = await _supa.from(type === 'room' ? 'rooms' : 'documents').delete().eq('id', id);
+    if (error) { showToast('Gagal: '+error.message, 'error'); return; }
+    showToast(type === 'room' ? 'Kategori berhasil dihapus' : 'Form berhasil dihapus');
     await loadData();
   }
 
-  // ============================================================
-  // CLOSE MODAL
-  // ============================================================
-  function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+  ['editRoomModal','editDocModal','confirmModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) { if (e.target===this) closeModal(id); });
+  });
+
+  document.getElementById('adminSearch').addEventListener('input', function() { renderRoomList(this.value); });
+
+  async function createUser() {
+    const email   = document.getElementById('newUserEmail').value.trim();
+    const pass    = document.getElementById('newUserPass').value;
+    const isAdmin = document.getElementById('newUserIsAdmin').checked;
+    if (!email) { showToast('Email tidak boleh kosong', 'error'); return; }
+    if (!pass || pass.length < 6) { showToast('Password minimal 6 karakter', 'error'); return; }
+    const btn = document.getElementById('createUserBtn');
+    const spinner = document.getElementById('createUserSpinner');
+    const label = document.getElementById('createUserBtnLabel');
+    btn.disabled = true; spinner.classList.remove('hidden'); label.textContent = 'Memproses...';
+    try {
+      const { error } = await _supa.auth.signUp({ email, password: pass });
+      if (error) throw new Error(error.message);
+      if (isAdmin) {
+        const { error: aErr } = await _supa.from('admin_users').insert({ email });
+        if (aErr) { showToast(`User dibuat, tapi gagal jadikan admin: ${aErr.message}`, 'error'); }
+        else { showToast(`User "${email}" dibuat dan dijadikan admin`); loadAdminUsers(); }
+      } else {
+        showToast(`User "${email}" berhasil dibuat`);
+      }
+      document.getElementById('newUserEmail').value = '';
+      document.getElementById('newUserPass').value  = '';
+      document.getElementById('newUserIsAdmin').checked = false;
+    } catch (err) {
+      showToast('Gagal: '+err.message, 'error');
+    } finally {
+      btn.disabled = false; spinner.classList.add('hidden'); label.textContent = 'Buat User';
+    }
   }
 
-  // Close modal on backdrop click
-  ['editRoomModal','editDocModal','confirmModal'].forEach(id => {
-    document.getElementById(id).addEventListener('click', function(e) {
-      if (e.target === this) closeModal(id);
-    });
-  });
+  async function loadAdminUsers() {
+    const listEl = document.getElementById('adminUserList');
+    listEl.innerHTML = `<div class="skeleton h-10 rounded-xl"></div><div class="skeleton h-10 rounded-xl mt-2"></div>`;
+    const { data, error } = await _supa.from('admin_users').select('id,email,display_name,created_at').order('created_at', { ascending: true });
+    if (error) { listEl.innerHTML = `<p class="text-xs text-red-500 py-2">Gagal: ${esc(error.message)}</p>`; return; }
+    if (!data || data.length === 0) { listEl.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center italic">Belum ada admin.</p>`; return; }
+    listEl.innerHTML = data.map(u => `
+      <div class="flex items-center justify-between gap-2 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm font-medium text-slate-700 truncate">${esc(u.email)}</div>
+          ${u.display_name ? `<div class="text-xs text-slate-400">${esc(u.display_name)}</div>` : ''}
+        </div>
+        <button onclick="confirmDeleteAdmin('${u.id}','${escAttr(u.email)}')"
+                class="text-xs px-2.5 py-1.5 rounded-lg bg-red-100 hover:bg-red-500 hover:text-white text-red-600 transition shrink-0">Hapus</button>
+      </div>`).join('');
+  }
 
-  // ============================================================
-  // LIVE SEARCH
-  // ============================================================
-  document.getElementById('adminSearch').addEventListener('input', function() {
-    renderRoomList(this.value);
-  });
+  function confirmDeleteAdmin(id, email) {
+    _pendingDelete = { type: 'admin_user', id };
+    document.getElementById('confirmMsg').innerHTML = `Hapus "<strong>${esc(email)}</strong>" dari daftar admin?`;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    document.getElementById('confirmYes').onclick = async () => {
+      if (!_pendingDelete) return;
+      const { id: uid } = _pendingDelete;
+      _pendingDelete = null;
+      closeModal('confirmModal');
+      const { error } = await _supa.from('admin_users').delete().eq('id', uid);
+      if (error) { showToast('Gagal: '+error.message, 'error'); return; }
+      showToast('Admin berhasil dihapus dari daftar');
+      loadAdminUsers();
+    };
+  }
 
-  // ============================================================
-  // TOAST
-  // ============================================================
   let toastTimer = null;
   function showToast(msg, type = 'success') {
-    const toast    = document.getElementById('toast');
-    const icon     = document.getElementById('toastIcon');
-    const msgEl    = document.getElementById('toastMsg');
-    msgEl.textContent = msg;
-
+    const toast = document.getElementById('toast');
+    const icon  = document.getElementById('toastIcon');
+    document.getElementById('toastMsg').textContent = msg;
     if (type === 'success') {
-      toast.className = 'fixed top-4 right-4 z-50 bg-white border border-emerald-200 shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-sm text-slate-700';
-      icon.innerHTML  = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
-      icon.classList.value = 'w-4 h-4 text-emerald-600 shrink-0';
+      toast.className = 'fixed top-16 right-4 z-50 bg-white border border-emerald-200 shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-xs text-slate-700';
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+      icon.className = 'w-4 h-4 text-emerald-600 shrink-0';
     } else {
-      toast.className = 'fixed top-4 right-4 z-50 bg-white border border-red-200 shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-sm text-slate-700';
-      icon.innerHTML  = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-      icon.classList.value = 'w-4 h-4 text-red-600 shrink-0';
+      toast.className = 'fixed top-16 right-4 z-50 bg-white border border-red-200 shadow-lg rounded-xl px-4 py-3 text-sm flex items-center gap-2 max-w-xs text-slate-700';
+      icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
+      icon.className = 'w-4 h-4 text-red-600 shrink-0';
     }
-
     toast.classList.remove('hidden');
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
   }
 
-  // ============================================================
-  // UTILITIES
-  // ============================================================
   function esc(str) {
-    return String(str || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-
   function escAttr(str) {
-    return String(str || '').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return String(str||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
   }
 
-  // ============================================================
-  // INIT – cek session aktif dan verifikasi admin
-  // ============================================================
   (async function init() {
     const { data: { session } } = await _supa.auth.getSession();
-    if (!session) return; // tetap di login page
-
-    // Verifikasi bahwa user yang sudah login adalah admin
+    if (!session) return;
     const adminRecord = await verifyAdmin(session.user.email);
     if (!adminRecord) {
       await _supa.auth.signOut();
@@ -742,7 +851,6 @@ const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
       errBox.classList.remove('hidden');
       return;
     }
-
     showAdminPage();
   })();
 </script>
