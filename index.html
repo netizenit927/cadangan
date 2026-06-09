@@ -16,18 +16,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
-    /* Custom scrollbar sidebar */
     #sidebar::-webkit-scrollbar { width: 3px; }
     #sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-    /* Fade transition konten */
+    #mobileSidebarNav::-webkit-scrollbar { width: 3px; }
+    #mobileSidebarNav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     #content-area { transition: opacity .15s ease; }
     #content-area.fading { opacity: 0; }
-
-    /* Smooth skeleton loading */
+    #drawerOverlay { transition: opacity .25s ease; }
+    #drawerPanel   { transition: transform .25s cubic-bezier(.4,0,.2,1); }
     @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
     }
     .skeleton {
       background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -99,7 +98,18 @@
   <!-- TOP BAR -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-      <a href="#" onclick="return false" class="text-lg font-bold tracking-tight text-slate-800 shrink-0">TRINITRIX</a>
+
+      <!-- Hamburger (mobile only) + Logo -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="drawerToggle" onclick="openDrawer()"
+                class="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition -ml-1"
+                aria-label="Buka menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <span class="text-lg font-bold tracking-tight text-slate-800">TRINITRIX</span>
+      </div>
 
       <!-- Search -->
       <div class="relative flex-1 max-w-md">
@@ -130,6 +140,32 @@
     </div>
   </header>
 
+  <!-- MOBILE DRAWER OVERLAY -->
+  <div id="drawerOverlay"
+       class="md:hidden hidden fixed inset-0 bg-black/40 z-40"
+       onclick="closeDrawer()"></div>
+
+  <!-- MOBILE DRAWER PANEL -->
+  <div id="drawerPanel"
+       class="md:hidden fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl flex flex-col -translate-x-full"
+       style="transform: translateX(-100%)">
+    <!-- Drawer header -->
+    <div class="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0">
+      <span class="font-bold text-slate-800">Kategori</span>
+      <button onclick="closeDrawer()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Drawer nav -->
+    <nav id="mobileSidebarNav" class="flex-1 overflow-y-auto p-3 space-y-0.5">
+      <div class="skeleton h-9 mb-1"></div>
+      <div class="skeleton h-9 mb-1"></div>
+      <div class="skeleton h-9 mb-1"></div>
+    </nav>
+  </div>
+
   <!-- LAYOUT: SIDEBAR + CONTENT -->
   <div class="max-w-7xl mx-auto flex min-h-[calc(100vh-3.5rem)]">
 
@@ -149,15 +185,8 @@
       </div>
     </aside>
 
-    <!-- MOBILE: Category pills (scrollable horizontal) -->
-    <div id="mobileCats" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20 shadow-lg">
-      <div class="flex overflow-x-auto gap-2 p-3 scrollbar-hide" style="-webkit-overflow-scrolling:touch; scrollbar-width:none;">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-
     <!-- MAIN CONTENT -->
-    <main class="flex-1 p-4 md:p-6 min-w-0 pb-20 md:pb-6">
+    <main class="flex-1 p-4 md:p-6 min-w-0">
       <div id="content-area">
         <!-- Skeleton loading -->
         <div class="mb-5">
@@ -280,7 +309,6 @@
       }));
 
       renderSidebar();
-      renderMobileCats();
 
       // Tampilkan room pertama
       if (ROOMS.length > 0) {
@@ -301,42 +329,58 @@
   }
 
   // ============================================================
-  // RENDER SIDEBAR
+  // RENDER SIDEBAR (desktop + mobile drawer, urut abjad)
   // ============================================================
   function renderSidebar() {
-    const nav = document.getElementById('sidebarNav');
-    nav.innerHTML = ROOMS.map(room => {
-      return `<button type="button"
-          class="sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 text-slate-700 hover:bg-slate-100"
-          data-room-id="${room.id}">
-          <span class="truncate">${esc(room.name)}</span>
-          ${room.documents.length > 0 ? `<span class="text-xs shrink-0 opacity-60">${room.documents.length}</span>` : ''}
-        </button>`;
-    }).join('');
+    const sorted = [...ROOMS].sort((a, b) =>
+      a.name.localeCompare(b.name, 'id', { sensitivity: 'base' })
+    );
 
-    nav.querySelectorAll('.sidebar-btn').forEach(btn => {
-      btn.addEventListener('click', () => selectRoom(btn.dataset.roomId));
-    });
+    const makeBtn = (room, extraClass = '') =>
+      `<button type="button"
+        class="sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 text-slate-700 hover:bg-slate-100 ${extraClass}"
+        data-room-id="${room.id}">
+        <span class="truncate">${esc(room.name)}</span>
+        ${room.documents.length > 0 ? `<span class="text-xs shrink-0 opacity-50">${room.documents.length}</span>` : ''}
+      </button>`;
+
+    // Desktop sidebar
+    const nav = document.getElementById('sidebarNav');
+    nav.innerHTML = sorted.map(r => makeBtn(r)).join('');
+    nav.querySelectorAll('.sidebar-btn').forEach(btn =>
+      btn.addEventListener('click', () => selectRoom(btn.dataset.roomId))
+    );
+
+    // Mobile drawer nav
+    const mobileNav = document.getElementById('mobileSidebarNav');
+    mobileNav.innerHTML = sorted.map(r => makeBtn(r, 'mobile-sidebar-btn')).join('');
+    mobileNav.querySelectorAll('.sidebar-btn').forEach(btn =>
+      btn.addEventListener('click', () => {
+        selectRoom(btn.dataset.roomId);
+        closeDrawer();
+      })
+    );
   }
 
   // ============================================================
-  // RENDER MOBILE CATEGORY PILLS
+  // MOBILE DRAWER
   // ============================================================
-  function renderMobileCats() {
-    const container = document.querySelector('#mobileCats > div');
-    container.innerHTML = ROOMS.map(room => `
-      <button type="button"
-        class="mobile-cat-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 text-slate-600 bg-slate-50 whitespace-nowrap transition"
-        data-room-id="${room.id}">
-        ${esc(room.name)}
-      </button>`).join('');
+  function openDrawer() {
+    const overlay = document.getElementById('drawerOverlay');
+    const panel   = document.getElementById('drawerPanel');
+    overlay.classList.remove('hidden');
+    // force reflow supaya transisi jalan
+    panel.offsetHeight;
+    panel.style.transform = 'translateX(0)';
+    document.body.style.overflow = 'hidden';
+  }
 
-    container.querySelectorAll('.mobile-cat-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selectRoom(btn.dataset.roomId);
-        btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-      });
-    });
+  function closeDrawer() {
+    const overlay = document.getElementById('drawerOverlay');
+    const panel   = document.getElementById('drawerPanel');
+    panel.style.transform = 'translateX(-100%)';
+    setTimeout(() => overlay.classList.add('hidden'), 250);
+    document.body.style.overflow = '';
   }
 
   // ============================================================
@@ -347,18 +391,11 @@
     const room = ROOMS.find(r => r.id === roomId);
     if (!room) return;
 
-    // Update sidebar active state
+    // Update semua sidebar-btn (desktop + mobile drawer)
     document.querySelectorAll('.sidebar-btn').forEach(btn => {
       const a = btn.dataset.roomId === roomId;
       btn.className = `sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 ${
         a ? 'bg-blue-600 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100'}`;
-    });
-
-    // Update mobile pills active state
-    document.querySelectorAll('.mobile-cat-btn').forEach(btn => {
-      const a = btn.dataset.roomId === roomId;
-      btn.className = `mobile-cat-btn shrink-0 px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition ${
-        a ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'border-slate-200 text-slate-600 bg-slate-50'}`;
     });
 
     // Fade dan render konten
