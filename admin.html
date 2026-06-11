@@ -881,31 +881,68 @@
       const lastLogin = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : 'Belum pernah';
 
       return `
-        <div class="flex items-center justify-between gap-3 px-3 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-medium text-sm text-slate-700 truncate">${esc(u.email)}</span>
-              ${u.is_admin
-                ? `<span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium shrink-0">Admin</span>`
-                : `<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium shrink-0">User</span>`
-              }
+        <div class="rounded-xl border border-slate-200 hover:border-slate-300 transition overflow-hidden">
+          <!-- User row -->
+          <div class="flex items-center justify-between gap-3 px-3 py-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-medium text-sm text-slate-700 truncate">${esc(u.email)}</span>
+                ${u.is_admin
+                  ? `<span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium shrink-0">Admin</span>`
+                  : `<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium shrink-0">User</span>`
+                }
+              </div>
+              <div class="text-xs text-slate-400 mt-0.5 flex gap-3 flex-wrap">
+                <span>Bergabung: ${joined}</span>
+                <span>Login terakhir: ${lastLogin}</span>
+              </div>
             </div>
-            <div class="text-xs text-slate-400 mt-0.5 flex gap-3 flex-wrap">
-              <span>Bergabung: ${joined}</span>
-              <span>Login terakhir: ${lastLogin}</span>
+            <!-- Action buttons -->
+            <div class="flex gap-1.5 shrink-0 flex-wrap justify-end">
+              ${u.is_admin
+                ? `<button onclick="grantAdminRole('${escAttr(u.email)}', false)"
+                           class="text-xs px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-700 transition whitespace-nowrap">
+                     Cabut Admin
+                   </button>`
+                : `<button onclick="grantAdminRole('${escAttr(u.email)}', true)"
+                           class="text-xs px-2.5 py-1.5 rounded-lg bg-violet-100 hover:bg-violet-500 hover:text-white text-violet-700 transition whitespace-nowrap">
+                     Jadi Admin
+                   </button>`
+              }
+              <button onclick="toggleResetForm('reset-${u.id}')"
+                      class="text-xs px-2.5 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-500 hover:text-white text-blue-700 transition whitespace-nowrap">
+                Reset Pass
+              </button>
+              <button onclick="confirmDeleteUser('${u.id}', '${escAttr(u.email)}')"
+                      class="text-xs px-2.5 py-1.5 rounded-lg bg-red-100 hover:bg-red-500 hover:text-white text-red-600 transition">
+                Hapus
+              </button>
             </div>
           </div>
-          <div class="flex gap-2 shrink-0">
-            ${u.is_admin
-              ? `<button onclick="removeAdminRole('${escAttr(u.email)}')"
-                         class="text-xs px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-700 transition whitespace-nowrap">
-                   Cabut Admin
-                 </button>`
-              : `<button onclick="grantAdminRole('${escAttr(u.email)}')"
-                         class="text-xs px-2.5 py-1.5 rounded-lg bg-violet-100 hover:bg-violet-500 hover:text-white text-violet-700 transition whitespace-nowrap">
-                   Jadikan Admin
-                 </button>`
-            }
+          <!-- Reset password form (hidden by default) -->
+          <div id="reset-${u.id}" class="hidden bg-slate-50 border-t border-slate-200 px-3 py-3">
+            <div class="flex gap-2 items-center flex-wrap">
+              <span class="text-xs text-slate-500 font-medium shrink-0">Password baru:</span>
+              <div class="relative flex-1 min-w-40">
+                <input id="newpass-${u.id}" type="password" placeholder="Minimal 6 karakter"
+                       class="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition pr-8" />
+                <button type="button" onclick="toggleFieldPass('newpass-${u.id}')"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                </button>
+              </div>
+              <button onclick="doResetPassword('${u.id}', 'newpass-${u.id}', 'reset-${u.id}')"
+                      class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shrink-0">
+                Simpan
+              </button>
+              <button onclick="toggleResetForm('reset-${u.id}')"
+                      class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 transition shrink-0">
+                Batal
+              </button>
+            </div>
           </div>
         </div>`;
     }).join('');
@@ -916,22 +953,72 @@
     renderUserList(filtered);
   }
 
-  async function grantAdminRole(email) {
-    const { error } = await _supa.from('admin_users').insert({ email });
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-    showToast(`${email} sekarang jadi admin`);
+  async function grantAdminRole(email, makeAdmin) {
+    if (makeAdmin) {
+      const { error } = await _supa.from('admin_users').insert({ email });
+      if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+      showToast(`${email} sekarang jadi admin`);
+    } else {
+      const { error } = await _supa.from('admin_users').delete().eq('email', email);
+      if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+      showToast(`Akses admin ${email} dicabut`);
+    }
     await loadAllUsers();
   }
 
   async function removeAdminRole(email) {
-    const { error } = await _supa.from('admin_users').delete().eq('email', email);
-    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-    showToast(`Akses admin ${email} dicabut`);
-    await loadAllUsers();
+    await grantAdminRole(email, false);
   }
 
-  function confirmDeleteAdmin(id, email) {
-    removeAdminRole(email);
+  function toggleResetForm(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden');
+  }
+
+  function toggleFieldPass(inputId) {
+    const inp = document.getElementById(inputId);
+    if (inp) inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  async function doResetPassword(userId, inputId, formId) {
+    const inp = document.getElementById(inputId);
+    const newPass = inp ? inp.value.trim() : '';
+    if (!newPass || newPass.length < 6) { showToast('Password minimal 6 karakter', 'error'); return; }
+
+    const { data, error } = await _supa.rpc('reset_user_password', {
+      target_user_id: userId,
+      new_password: newPass
+    });
+
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    if (data && data.success === false) { showToast('Gagal: ' + data.error, 'error'); return; }
+
+    showToast('Password berhasil direset');
+    const form = document.getElementById(formId);
+    if (form) form.classList.add('hidden');
+    if (inp) inp.value = '';
+  }
+
+  function confirmDeleteUser(userId, email) {
+    _pendingDelete = { type: 'user', id: userId };
+    document.getElementById('confirmMsg').innerHTML =
+      `Hapus akun "<strong>${esc(email)}</strong>" secara permanen? Tindakan ini tidak bisa dibatalkan.`;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    document.getElementById('confirmYes').onclick = executeDeleteUser;
+  }
+
+  async function executeDeleteUser() {
+    if (!_pendingDelete) return;
+    const { id } = _pendingDelete;
+    _pendingDelete = null;
+    closeModal('confirmModal');
+
+    const { data, error } = await _supa.rpc('delete_user', { target_user_id: id });
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    if (data && data.success === false) { showToast('Gagal: ' + data.error, 'error'); return; }
+
+    showToast('User berhasil dihapus');
+    await loadAllUsers();
   }
 
   let toastTimer = null;
