@@ -384,8 +384,8 @@
       <!-- PAGE: DAFTAR USER -->
       <section id="page-userlist" class="hidden p-4 md:p-6 pb-16">
         <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <h2 class="text-lg font-semibold text-slate-800">Daftar User Admin</h2>
-          <button onclick="loadAdminUsers()"
+          <h2 class="text-lg font-semibold text-slate-800">Daftar User</h2>
+          <button onclick="loadAllUsers()"
                   class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -394,15 +394,38 @@
           </button>
         </div>
 
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+            <div id="statTotalUsers" class="text-2xl font-bold text-slate-800">–</div>
+            <div class="text-xs text-slate-500 font-medium">Total User</div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 text-center shadow-sm">
+            <div id="statTotalAdmins" class="text-2xl font-bold text-violet-600">–</div>
+            <div class="text-xs text-slate-500 font-medium">Admin</div>
+          </div>
+        </div>
+
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-          <div id="adminUserList" class="space-y-2">
+          <!-- Search -->
+          <div class="relative mb-4">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input id="userSearch" type="text" placeholder="Cari email..."
+                   oninput="filterUsers(this.value)"
+                   class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+          </div>
+
+          <div id="allUserList" class="space-y-2">
             <div class="skeleton h-12 rounded-xl"></div>
             <div class="skeleton h-12 rounded-xl"></div>
             <div class="skeleton h-12 rounded-xl"></div>
           </div>
-          <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700">
-            <strong>Catatan:</strong> Daftar ini menampilkan user yang terdaftar sebagai admin. Tombol hapus hanya menghapus akses admin, bukan akun Auth-nya. Untuk hapus akun sepenuhnya gunakan <strong>Supabase Dashboard → Authentication → Users</strong>.
-          </div>
+        </div>
+
+        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700">
+          <strong>Catatan:</strong> Untuk hapus akun sepenuhnya gunakan <strong>Supabase Dashboard → Authentication → Users</strong>. Tombol hapus admin hanya mencabut akses admin, bukan menghapus akun.
         </div>
       </section>
 
@@ -555,7 +578,7 @@
     const mnav = document.getElementById('mnav-'+page);
     if (mnav) { mnav.classList.add('bg-blue-600','text-white'); mnav.classList.remove('text-slate-300'); }
 
-    if (page === 'userlist') loadAdminUsers();
+    if (page === 'userlist') loadAllUsers();
   }
 
   function openMobileMenu() {
@@ -814,36 +837,101 @@
   }
 
   async function loadAdminUsers() {
-    const listEl = document.getElementById('adminUserList');
-    listEl.innerHTML = `<div class="skeleton h-10 rounded-xl"></div><div class="skeleton h-10 rounded-xl mt-2"></div>`;
-    const { data, error } = await _supa.from('admin_users').select('id,email,display_name,created_at').order('created_at', { ascending: true });
-    if (error) { listEl.innerHTML = `<p class="text-xs text-red-500 py-2">Gagal: ${esc(error.message)}</p>`; return; }
-    if (!data || data.length === 0) { listEl.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center italic">Belum ada admin.</p>`; return; }
-    listEl.innerHTML = data.map(u => `
-      <div class="flex items-center justify-between gap-2 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-200">
-        <div class="min-w-0 flex-1">
-          <div class="text-sm font-medium text-slate-700 truncate">${esc(u.email)}</div>
-          ${u.display_name ? `<div class="text-xs text-slate-400">${esc(u.display_name)}</div>` : ''}
-        </div>
-        <button onclick="confirmDeleteAdmin('${u.id}','${escAttr(u.email)}')"
-                class="text-xs px-2.5 py-1.5 rounded-lg bg-red-100 hover:bg-red-500 hover:text-white text-red-600 transition shrink-0">Hapus</button>
-      </div>`).join('');
+    loadAllUsers();
+  }
+
+  let _allUsers = [];
+
+  async function loadAllUsers() {
+    const listEl = document.getElementById('allUserList');
+    listEl.innerHTML = `
+      <div class="skeleton h-12 rounded-xl"></div>
+      <div class="skeleton h-12 rounded-xl mt-2"></div>
+      <div class="skeleton h-12 rounded-xl mt-2"></div>`;
+
+    const { data, error } = await _supa
+      .from('user_list')
+      .select('id, email, created_at, last_sign_in_at, is_admin')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      listEl.innerHTML = `<p class="text-xs text-red-500 py-2">Gagal memuat: ${esc(error.message)}</p>
+        <p class="text-xs text-slate-400 mt-1">Pastikan view <code>user_list</code> sudah dibuat di Supabase SQL Editor.</p>`;
+      return;
+    }
+
+    _allUsers = data || [];
+
+    // Update stats
+    document.getElementById('statTotalUsers').textContent  = _allUsers.length;
+    document.getElementById('statTotalAdmins').textContent = _allUsers.filter(u => u.is_admin).length;
+
+    renderUserList(_allUsers);
+  }
+
+  function renderUserList(users) {
+    const listEl = document.getElementById('allUserList');
+    if (!users || users.length === 0) {
+      listEl.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center italic">Belum ada user.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = users.map(u => {
+      const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : '–';
+      const lastLogin = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : 'Belum pernah';
+
+      return `
+        <div class="flex items-center justify-between gap-3 px-3 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-medium text-sm text-slate-700 truncate">${esc(u.email)}</span>
+              ${u.is_admin
+                ? `<span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium shrink-0">Admin</span>`
+                : `<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium shrink-0">User</span>`
+              }
+            </div>
+            <div class="text-xs text-slate-400 mt-0.5 flex gap-3 flex-wrap">
+              <span>Bergabung: ${joined}</span>
+              <span>Login terakhir: ${lastLogin}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            ${u.is_admin
+              ? `<button onclick="removeAdminRole('${escAttr(u.email)}')"
+                         class="text-xs px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-500 hover:text-white text-amber-700 transition whitespace-nowrap">
+                   Cabut Admin
+                 </button>`
+              : `<button onclick="grantAdminRole('${escAttr(u.email)}')"
+                         class="text-xs px-2.5 py-1.5 rounded-lg bg-violet-100 hover:bg-violet-500 hover:text-white text-violet-700 transition whitespace-nowrap">
+                   Jadikan Admin
+                 </button>`
+            }
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterUsers(q) {
+    const filtered = _allUsers.filter(u => u.email.toLowerCase().includes(q.toLowerCase().trim()));
+    renderUserList(filtered);
+  }
+
+  async function grantAdminRole(email) {
+    const { error } = await _supa.from('admin_users').insert({ email });
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast(`${email} sekarang jadi admin`);
+    await loadAllUsers();
+  }
+
+  async function removeAdminRole(email) {
+    const { error } = await _supa.from('admin_users').delete().eq('email', email);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast(`Akses admin ${email} dicabut`);
+    await loadAllUsers();
   }
 
   function confirmDeleteAdmin(id, email) {
-    _pendingDelete = { type: 'admin_user', id };
-    document.getElementById('confirmMsg').innerHTML = `Hapus "<strong>${esc(email)}</strong>" dari daftar admin?`;
-    document.getElementById('confirmModal').classList.remove('hidden');
-    document.getElementById('confirmYes').onclick = async () => {
-      if (!_pendingDelete) return;
-      const { id: uid } = _pendingDelete;
-      _pendingDelete = null;
-      closeModal('confirmModal');
-      const { error } = await _supa.from('admin_users').delete().eq('id', uid);
-      if (error) { showToast('Gagal: '+error.message, 'error'); return; }
-      showToast('Admin berhasil dihapus dari daftar');
-      loadAdminUsers();
-    };
+    removeAdminRole(email);
   }
 
   let toastTimer = null;
