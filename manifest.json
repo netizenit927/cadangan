@@ -1,10 +1,11 @@
 {
   "name": "TRINITRIX",
   "short_name": "TRINITRIX",
-  "description": "Portal Dokumen & Form TRINITRIX",
+  "description": "Portal Form TRINITRIX",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
   "icons": [
@@ -12,13 +13,19 @@
       "src": "/trinitrix.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/trinitrix.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/trinitrix.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
