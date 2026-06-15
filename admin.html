@@ -849,14 +849,11 @@
       <div class="skeleton h-12 rounded-xl mt-2"></div>
       <div class="skeleton h-12 rounded-xl mt-2"></div>`;
 
-    const { data, error } = await _supa
-      .from('user_list')
-      .select('id, email, created_at, last_sign_in_at, is_admin')
-      .order('created_at', { ascending: false });
+    const { data, error } = await _supa.rpc('get_user_list');
 
     if (error) {
       listEl.innerHTML = `<p class="text-xs text-red-500 py-2">Gagal memuat: ${esc(error.message)}</p>
-        <p class="text-xs text-slate-400 mt-1">Pastikan view <code>user_list</code> sudah dibuat di Supabase SQL Editor.</p>`;
+        <p class="text-xs text-slate-400 mt-1">Pastikan function <code>get_user_list</code> sudah dibuat di Supabase SQL Editor.</p>`;
       return;
     }
 
