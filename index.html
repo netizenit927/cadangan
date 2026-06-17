@@ -8,6 +8,7 @@
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#2563eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="TRINITRIX" />
@@ -16,14 +17,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
-    #sidebar::-webkit-scrollbar { width: 3px; }
-    #sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    #mobileSidebarNav::-webkit-scrollbar { width: 3px; }
-    #mobileSidebarNav::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    #content-area { transition: opacity .15s ease; }
-    #content-area.fading { opacity: 0; }
-    #drawerOverlay { transition: opacity .25s ease; }
-    #drawerPanel   { transition: transform .25s cubic-bezier(.4,0,.2,1); }
     @keyframes shimmer {
       0%   { background-position: -200% 0; }
       100% { background-position:  200% 0; }
@@ -34,9 +27,16 @@
       animation: shimmer 1.4s infinite;
       border-radius: 12px;
     }
+    /* Expand/collapse animasi */
+    .room-forms {
+      transition: max-height .25s ease, opacity .2s ease;
+      overflow: hidden;
+    }
+    .chevron { transition: transform .2s ease; }
+    .chevron.open { transform: rotate(90deg); }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-100 min-h-screen font-sans">
 
 <!-- ============================================================
      HALAMAN LOGIN
@@ -69,9 +69,8 @@
                  class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition pr-10"
                  placeholder="Masukkan password" />
           <button type="button" id="togglePass"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
-                  aria-label="Toggle password visibility">
-            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
@@ -91,143 +90,82 @@
 </div>
 
 <!-- ============================================================
-     HALAMAN UTAMA (setelah login)
+     HALAMAN UTAMA
      ============================================================ -->
-<div id="mainPage" class="hidden">
+<div id="mainPage" class="hidden min-h-screen">
 
-  <!-- TOP BAR -->
+  <!-- HEADER -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-
-      <!-- Hamburger (mobile only) + Logo -->
-      <div class="flex items-center gap-2 shrink-0">
-        <button id="drawerToggle" onclick="openDrawer()"
-                class="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition -ml-1"
-                aria-label="Buka menu">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
-        <span class="text-lg font-bold tracking-tight text-slate-800">TRINITRIX</span>
-      </div>
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <span class="text-lg font-bold tracking-tight text-slate-800 shrink-0">TRINITRIX</span>
 
       <!-- Search -->
-      <div class="relative flex-1 max-w-md">
+      <div class="relative flex-1 max-w-xs">
         <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
         </div>
-        <input id="globalSearch" type="text" placeholder="Cari kategori atau dokumen..."
+        <input id="globalSearch" type="text" placeholder="Cari..."
                autocomplete="off"
-               class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-slate-50 transition" />
+               class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-slate-50 transition" />
         <div id="searchDrop"
-             class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+             class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 max-h-72 overflow-y-auto">
         </div>
       </div>
 
-      <!-- User info + logout -->
-      <div class="flex items-center gap-2 shrink-0">
-        <span id="userGreeting" class="text-xs text-slate-500 hidden sm:block"></span>
-        <button onclick="logout()"
-                class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-          Keluar
-        </button>
-      </div>
+      <button onclick="logout()"
+              class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Keluar
+      </button>
     </div>
   </header>
 
-  <!-- MOBILE DRAWER OVERLAY -->
-  <div id="drawerOverlay"
-       class="md:hidden hidden fixed inset-0 bg-black/40 z-40"
-       onclick="closeDrawer()"></div>
+  <!-- CONTENT -->
+  <main class="max-w-3xl mx-auto px-4 py-5 pb-10">
 
-  <!-- MOBILE DRAWER PANEL -->
-  <div id="drawerPanel"
-       class="md:hidden fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl flex flex-col -translate-x-full"
-       style="transform: translateX(-100%)">
-    <!-- Drawer header -->
-    <div class="flex items-center justify-between px-4 h-14 border-b border-slate-200 shrink-0">
-      <span class="font-bold text-slate-800">Kategori</span>
-      <button onclick="closeDrawer()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+    <!-- Skeleton -->
+    <div id="roomSkeleton" class="space-y-3">
+      <div class="skeleton h-14 rounded-2xl"></div>
+      <div class="skeleton h-14 rounded-2xl"></div>
+      <div class="skeleton h-14 rounded-2xl"></div>
+      <div class="skeleton h-14 rounded-2xl"></div>
+      <div class="skeleton h-14 rounded-2xl"></div>
     </div>
-    <!-- Drawer nav -->
-    <nav id="mobileSidebarNav" class="flex-1 overflow-y-auto p-3 space-y-0.5">
-      <div class="skeleton h-9 mb-1"></div>
-      <div class="skeleton h-9 mb-1"></div>
-      <div class="skeleton h-9 mb-1"></div>
-    </nav>
-  </div>
 
-  <!-- LAYOUT: SIDEBAR + CONTENT -->
-  <div class="max-w-7xl mx-auto flex min-h-[calc(100vh-3.5rem)]">
+    <!-- Daftar ruangan -->
+    <div id="roomList" class="hidden space-y-3"></div>
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar"
-           class="w-52 shrink-0 bg-white border-r border-slate-200 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)] hidden md:block">
-      <div class="p-3">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 mb-2">Kategori</p>
-        <nav id="sidebarNav" class="space-y-0.5">
-          <!-- Skeleton loading -->
-          <div class="skeleton h-9 mb-1"></div>
-          <div class="skeleton h-9 mb-1"></div>
-          <div class="skeleton h-9 mb-1"></div>
-          <div class="skeleton h-9 mb-1"></div>
-          <div class="skeleton h-9 mb-1"></div>
-        </nav>
-      </div>
-    </aside>
+    <!-- Empty state -->
+    <div id="emptyState" class="hidden bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400 text-sm">
+      Belum ada kategori. Hubungi admin untuk menambahkan data.
+    </div>
 
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 p-4 md:p-6 min-w-0">
-      <div id="content-area">
-        <!-- Skeleton loading -->
-        <div class="mb-5">
-          <div class="skeleton h-8 w-48 mb-2"></div>
-          <div class="skeleton h-4 w-32"></div>
-        </div>
-        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          <div class="skeleton h-16"></div>
-          <div class="skeleton h-16"></div>
-          <div class="skeleton h-16"></div>
-          <div class="skeleton h-16"></div>
-          <div class="skeleton h-16"></div>
-          <div class="skeleton h-16"></div>
-        </div>
-      </div>
-    </main>
+    <!-- Error state -->
+    <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-red-600 text-sm">
+      Gagal memuat data. Periksa koneksi internet.
+    </div>
 
-  </div>
+  </main>
 </div>
 
-<!-- ============================================================
-     CONFIG SUPABASE – Ganti dengan project kamu
-     ============================================================ -->
 <script>
-  // ⚠️  GANTI dua baris ini dengan URL dan ANON KEY Supabase project kamu
   const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuemJmcW9ia3JmemRzaWFoYmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NjU1NTksImV4cCI6MjA5NjU0MTU1OX0.cxkJbokUdsmRyQGNS4xDRNx7XUf319PXlzOLdzfC0kM';
-
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ============================================================
-  // TOGGLE PASSWORD VISIBILITY
-  // ============================================================
+  let ROOMS = [];
+
+  // ── Toggle password ──
   document.getElementById('togglePass').addEventListener('click', () => {
     const inp = document.getElementById('loginPass');
     inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  // ============================================================
-  // LOGIN
-  // ============================================================
+  // ── Login ──
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email    = document.getElementById('loginUser').value.trim();
@@ -243,9 +181,7 @@
     try {
       const { data, error } = await _supa.auth.signInWithPassword({ email, password });
       if (error) throw new Error('Email atau password salah.');
-
-      showMainPage(data.user.email);
-
+      showMainPage();
     } catch (err) {
       errBox.textContent = err.message;
       errBox.classList.remove('hidden');
@@ -255,9 +191,7 @@
     }
   });
 
-  // ============================================================
-  // LOGOUT
-  // ============================================================
+  // ── Logout ──
   async function logout() {
     await _supa.auth.signOut();
     document.getElementById('mainPage').classList.add('hidden');
@@ -266,283 +200,210 @@
     document.getElementById('loginPass').value = '';
   }
 
-  // ============================================================
-  // TAMPILKAN HALAMAN UTAMA
-  // ============================================================
-  function showMainPage(email) {
+  // ── Show main page ──
+  function showMainPage() {
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('mainPage').classList.remove('hidden');
-    document.getElementById('userGreeting').textContent = `Halo, ${email}`;
     loadRooms();
   }
 
-  // ============================================================
-  // LOAD DATA DARI SUPABASE
-  // ============================================================
-  let ROOMS = [];
-  let activeRoomId = null;
-
+  // ── Load data ──
   async function loadRooms() {
     try {
-      const { data: rooms, error: rErr } = await _supa
-        .from('rooms')
-        .select('id, name, description, sort_order')
-        .order('name', { ascending: true });
+      const [rRes, dRes] = await Promise.all([
+        _supa.from('rooms').select('id,name,description').order('name', { ascending: true }),
+        _supa.from('documents').select('id,room_id,title,url,category,sort_order')
+             .eq('category','form').order('sort_order', { ascending: true })
+      ]);
 
-      if (rErr) throw rErr;
+      if (rRes.error) throw rRes.error;
+      if (dRes.error) throw dRes.error;
 
-      const { data: docs, error: dErr } = await _supa
-        .from('documents')
-        .select('id, room_id, title, url, category, sort_order')
-        .order('sort_order', { ascending: true });
-
-      if (dErr) throw dErr;
-
-      // Gabungkan docs ke rooms
-      ROOMS = rooms.map(r => ({
+      ROOMS = (rRes.data || []).map(r => ({
         ...r,
-        documents: docs.filter(d => d.room_id === r.id)
-          .sort((a, b) => {
-            if (a.category !== b.category) return a.category === 'excel' ? -1 : 1;
-            return (a.sort_order || 0) - (b.sort_order || 0);
-          })
+        documents: (dRes.data || []).filter(d => d.room_id === r.id)
+          .sort((a, b) => (a.sort_order||0) - (b.sort_order||0))
       }));
 
-      renderSidebar();
-
-      // Tampilkan room pertama
-      if (ROOMS.length > 0) {
-        selectRoom(ROOMS[0].id);
-      } else {
-        document.getElementById('content-area').innerHTML = `
-          <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400 text-sm">
-            Belum ada kategori. Hubungi admin untuk menambahkan data.
-          </div>`;
-      }
+      renderRoomList();
 
     } catch (err) {
-      document.getElementById('content-area').innerHTML = `
-        <div class="bg-red-50 border border-red-200 rounded-2xl p-6 text-center text-red-600 text-sm">
-          Gagal memuat data. Periksa koneksi internet dan konfigurasi Supabase.
-        </div>`;
+      document.getElementById('roomSkeleton').classList.add('hidden');
+      document.getElementById('errorState').classList.remove('hidden');
     }
   }
 
-  // ============================================================
-  // RENDER SIDEBAR (desktop + mobile drawer, urut abjad)
-  // ============================================================
-  function renderSidebar() {
-    const sorted = [...ROOMS].sort((a, b) =>
-      a.name.localeCompare(b.name, 'id', { sensitivity: 'base' })
-    );
+  // ── Render list ruangan ──
+  function renderRoomList(filter = '') {
+    const q = filter.toLowerCase().trim();
+    const list = document.getElementById('roomList');
+    const skeleton = document.getElementById('roomSkeleton');
+    const empty = document.getElementById('emptyState');
 
-    const makeBtn = (room, extraClass = '') =>
-      `<button type="button"
-        class="sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 text-slate-700 hover:bg-slate-100 ${extraClass}"
-        data-room-id="${room.id}">
-        <span class="truncate">${esc(room.name)}</span>
-        ${room.documents.length > 0 ? `<span class="text-xs shrink-0 opacity-50">${room.documents.length}</span>` : ''}
-      </button>`;
+    skeleton.classList.add('hidden');
 
-    // Desktop sidebar
-    const nav = document.getElementById('sidebarNav');
-    nav.innerHTML = sorted.map(r => makeBtn(r)).join('');
-    nav.querySelectorAll('.sidebar-btn').forEach(btn =>
-      btn.addEventListener('click', () => selectRoom(btn.dataset.roomId))
-    );
-
-    // Mobile drawer nav
-    const mobileNav = document.getElementById('mobileSidebarNav');
-    mobileNav.innerHTML = sorted.map(r => makeBtn(r, 'mobile-sidebar-btn')).join('');
-    mobileNav.querySelectorAll('.sidebar-btn').forEach(btn =>
-      btn.addEventListener('click', () => {
-        selectRoom(btn.dataset.roomId);
-        closeDrawer();
-      })
-    );
-  }
-
-  // ============================================================
-  // MOBILE DRAWER
-  // ============================================================
-  function openDrawer() {
-    const overlay = document.getElementById('drawerOverlay');
-    const panel   = document.getElementById('drawerPanel');
-    overlay.classList.remove('hidden');
-    // force reflow supaya transisi jalan
-    panel.offsetHeight;
-    panel.style.transform = 'translateX(0)';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeDrawer() {
-    const overlay = document.getElementById('drawerOverlay');
-    const panel   = document.getElementById('drawerPanel');
-    panel.style.transform = 'translateX(-100%)';
-    setTimeout(() => overlay.classList.add('hidden'), 250);
-    document.body.style.overflow = '';
-  }
-
-  // ============================================================
-  // SELECT ROOM
-  // ============================================================
-  function selectRoom(roomId) {
-    activeRoomId = roomId;
-    const room = ROOMS.find(r => r.id === roomId);
-    if (!room) return;
-
-    // Update semua sidebar-btn (desktop + mobile drawer)
-    document.querySelectorAll('.sidebar-btn').forEach(btn => {
-      const a = btn.dataset.roomId === roomId;
-      btn.className = `sidebar-btn w-full text-left px-3 py-2.5 rounded-xl text-sm transition flex items-center justify-between gap-2 ${
-        a ? 'bg-blue-600 text-white font-semibold' : 'text-slate-700 hover:bg-slate-100'}`;
+    const filtered = ROOMS.filter(r => {
+      if (!q) return true;
+      return r.name.toLowerCase().includes(q) ||
+             r.documents.some(d => d.title.toLowerCase().includes(q));
     });
 
-    // Fade dan render konten
-    const ca = document.getElementById('content-area');
-    ca.classList.add('fading');
-    setTimeout(() => {
-      ca.innerHTML = renderRoomContent(room);
-      ca.classList.remove('fading');
-    }, 100);
-  }
-
-  // ============================================================
-  // RENDER ISI ROOM
-  // ============================================================
-  function renderRoomContent(room) {
-    const forms = room.documents.filter(d => d.category === 'form');
-
-    let html = `
-      <div class="mb-5">
-        <h2 class="text-xl md:text-2xl font-bold text-slate-800">${esc(room.name)}</h2>
-        ${room.description ? `<p class="text-slate-500 text-sm mt-1">${esc(room.description)}</p>` : ''}
-        <div class="flex gap-2 mt-2">
-          <span class="text-xs px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 font-medium">${forms.length} Form</span>
-        </div>
-      </div>`;
-
-    if (forms.length === 0) {
-      html += `<div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 text-sm">Belum ada form di kategori ini.</div>`;
-    } else {
-      html += `<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">`;
-      forms.forEach(doc => {
-        html += `
-          <a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer"
-             class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all p-4 flex items-center justify-between gap-3 group active:scale-[0.98]">
-            <span class="font-medium text-sm leading-snug text-slate-700 group-hover:text-blue-700 transition line-clamp-2">
-              ${esc(doc.title)}
-            </span>
-            <span class="text-xs px-2 py-0.5 rounded-full shrink-0 font-medium bg-blue-100 text-blue-700">FORM</span>
-          </a>`;
-      });
-      html += `</div>`;
+    if (filtered.length === 0) {
+      list.classList.add('hidden');
+      empty.classList.remove('hidden');
+      empty.textContent = q ? `Tidak ada hasil untuk "${q}"` : 'Belum ada kategori.';
+      return;
     }
-    return html;
+
+    empty.classList.add('hidden');
+    list.classList.remove('hidden');
+
+    list.innerHTML = filtered.map(room => {
+      const formCount = room.documents.length;
+      // highlight search di nama
+      const displayName = q ? highlight(room.name, q) : esc(room.name);
+
+      return `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <!-- Header ruangan (klik untuk expand) -->
+          <button type="button" onclick="toggleRoom('${room.id}')"
+                  class="w-full flex items-center justify-between px-4 py-4 hover:bg-slate-50 transition text-left gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-800 text-sm truncate">${displayName}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${formCount} form</div>
+              </div>
+            </div>
+            <svg id="chevron-${room.id}" class="chevron w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- List form (tersembunyi default) -->
+          <div id="forms-${room.id}" class="room-forms max-h-0 opacity-0">
+            ${formCount === 0
+              ? `<div class="px-4 pb-4 text-xs text-slate-400 italic">Belum ada form di kategori ini.</div>`
+              : `<div class="px-3 pb-3 space-y-2 border-t border-slate-100 pt-3">` +
+                room.documents.map(doc => {
+                  const titleDisplay = q ? highlight(doc.title, q) : esc(doc.title);
+                  return `
+                    <a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer"
+                       class="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition group active:scale-[0.98]">
+                      <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                      </div>
+                      <span class="text-sm font-medium text-slate-700 group-hover:text-blue-700 transition leading-snug">${titleDisplay}</span>
+                      <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    </a>`;
+                }).join('') +
+                `</div>`
+            }
+          </div>
+        </div>`;
+    }).join('');
   }
 
-  // ============================================================
-  // GLOBAL SEARCH
-  // ============================================================
+  // ── Toggle expand ruangan ──
+  const openRooms = new Set();
+
+  function toggleRoom(roomId) {
+    const forms   = document.getElementById('forms-' + roomId);
+    const chevron = document.getElementById('chevron-' + roomId);
+    if (!forms) return;
+
+    if (openRooms.has(roomId)) {
+      forms.style.maxHeight = '0';
+      forms.style.opacity   = '0';
+      chevron.classList.remove('open');
+      openRooms.delete(roomId);
+    } else {
+      forms.style.maxHeight = forms.scrollHeight + 'px';
+      forms.style.opacity   = '1';
+      chevron.classList.add('open');
+      openRooms.add(roomId);
+    }
+  }
+
+  // ── Search ──
   (function () {
     const input = document.getElementById('globalSearch');
     const drop  = document.getElementById('searchDrop');
+    const norm  = s => (s || '').toLowerCase().trim();
 
-    const norm = s => (s || '').toLowerCase().trim();
+    input.addEventListener('input', function () {
+      const q = norm(this.value);
+      if (!q) { drop.classList.add('hidden'); renderRoomList(''); return; }
 
-    function highlight(text, q) {
-      if (!q) return esc(text);
-      const idx = norm(text).indexOf(q);
-      if (idx < 0) return esc(text);
-      return esc(text.slice(0, idx))
-           + `<mark class="bg-yellow-200 rounded px-0.5">${esc(text.slice(idx, idx + q.length))}</mark>`
-           + esc(text.slice(idx + q.length));
-    }
-
-    function doSearch(q) {
-      if (!q) { drop.classList.add('hidden'); drop.innerHTML = ''; return; }
-
+      // Tampilkan hasil di dropdown
       const results = [];
       ROOMS.forEach(room => {
-        if (norm(room.name).includes(q)) results.push({ type: 'room', room, doc: null });
         room.documents.forEach(doc => {
-          if (norm(doc.title).includes(q)) results.push({ type: 'doc', room, doc });
+          if (norm(doc.title).includes(q) || norm(room.name).includes(q)) {
+            results.push({ room, doc });
+          }
         });
       });
 
       if (!results.length) {
         drop.innerHTML = `<div class="px-4 py-3 text-sm text-slate-400">Tidak ada hasil untuk "<strong>${esc(q)}</strong>"</div>`;
-        drop.classList.remove('hidden');
-        return;
-      }
-
-      const shown = results.slice(0, 12);
-      drop.innerHTML = shown.map(r => {
-        if (r.type === 'room') {
-          return `<button type="button" data-room-id="${esc(r.room.id)}"
-            class="search-room-btn w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3">
-            <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 shrink-0">Kategori</span>
-            <span class="font-medium text-sm">${highlight(r.room.name, q)}</span>
-          </button>`;
-        } else {
-          const isExcel = r.doc.category === 'excel';
-          return `<a href="${esc(r.doc.url)}" target="_blank" rel="noopener noreferrer"
-            class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 flex items-center gap-3 block">
-            <span class="text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${isExcel ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${isExcel ? 'EXCEL' : 'FORM'}</span>
-            <div class="min-w-0">
-              <div class="text-sm font-medium truncate">${highlight(r.doc.title, q)}</div>
+      } else {
+        drop.innerHTML = results.slice(0, 10).map(r => `
+          <a href="${esc(r.doc.url)}" target="_blank" rel="noopener noreferrer"
+             class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium text-slate-700 truncate">${highlight(r.doc.title, q)}</div>
               <div class="text-xs text-slate-400 truncate">${esc(r.room.name)}</div>
             </div>
-          </a>`;
-        }
-      }).join('');
-
+            <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+          </a>`).join('');
+      }
       drop.classList.remove('hidden');
+    });
 
-      drop.querySelectorAll('.search-room-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          drop.classList.add('hidden');
-          input.value = '';
-          selectRoom(btn.dataset.roomId);
-        });
-      });
-    }
-
-    input.addEventListener('input', e => doSearch(norm(e.target.value)));
     document.addEventListener('click', e => {
       if (e.target !== input && !drop.contains(e.target)) drop.classList.add('hidden');
     });
     input.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { drop.classList.add('hidden'); input.value = ''; }
+      if (e.key === 'Escape') { drop.classList.add('hidden'); input.value = ''; renderRoomList(''); }
     });
   })();
 
-  // ============================================================
-  // UTILITIES
-  // ============================================================
-  function esc(str) {
-    return String(str || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // ── Highlight text ──
+  function highlight(text, q) {
+    if (!q) return esc(text);
+    const lower = text.toLowerCase();
+    const idx   = lower.indexOf(q.toLowerCase());
+    if (idx < 0) return esc(text);
+    return esc(text.slice(0, idx))
+         + `<mark class="bg-yellow-200 rounded">${esc(text.slice(idx, idx + q.length))}</mark>`
+         + esc(text.slice(idx + q.length));
   }
 
-  // ============================================================
-  // INIT – cek session aktif via Supabase Auth
-  // ============================================================
+  // ── Escape HTML ──
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ──
   (async function init() {
     const { data: { session } } = await _supa.auth.getSession();
-    if (session) {
-      showMainPage(session.user.email);
-    }
+    if (session) showMainPage();
   })();
 
-  // ============================================================
-  // PWA – Register Service Worker
-  // ============================================================
+  // ── PWA service worker ──
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
   }
 </script>
 </body>
