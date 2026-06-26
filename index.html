@@ -25,15 +25,21 @@
       background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
       background-size: 200% 100%;
       animation: shimmer 1.4s infinite;
-      border-radius: 12px;
+      border-radius: 10px;
     }
-    /* Expand/collapse animasi */
-    .room-forms {
-      transition: max-height .25s ease, opacity .2s ease;
-      overflow: hidden;
+
+    /* Slide panel dokumen dari kanan */
+    #docPanel {
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
     }
-    .chevron { transition: transform .2s ease; }
-    .chevron.open { transform: rotate(90deg); }
+    #docPanel.open {
+      transform: translateX(0);
+    }
+
+    /* Tap highlight di mobile */
+    .room-item:active  { background-color: #eff6ff; }
+    .doc-item:active   { background-color: #eff6ff; }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen font-sans">
@@ -41,12 +47,13 @@
 <!-- ============================================================
      HALAMAN LOGIN
      ============================================================ -->
-<div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-slate-100">
+<div id="loginPage" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 to-slate-100">
   <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
     <div class="text-center mb-6">
-      <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+      <div class="w-12 h-12 bg-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
         </svg>
       </div>
       <h1 class="text-2xl font-bold text-slate-800">TRINITRIX</h1>
@@ -59,18 +66,18 @@
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
         <input id="loginUser" type="email" required autocomplete="email"
-               class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+               class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 transition"
                placeholder="Masukkan email" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
         <div class="relative">
           <input id="loginPass" type="password" required autocomplete="current-password"
-                 class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition pr-10"
+                 class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 transition pr-11"
                  placeholder="Masukkan password" />
           <button type="button" id="togglePass"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
             </svg>
@@ -78,7 +85,7 @@
         </div>
       </div>
       <button type="submit" id="loginBtn"
-              class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 rounded-xl transition text-sm flex items-center justify-center gap-2">
+              class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
         <span id="loginBtnText">Masuk</span>
         <svg id="loginSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -90,58 +97,56 @@
 </div>
 
 <!-- ============================================================
-     HALAMAN UTAMA
+     HALAMAN UTAMA – LIST RUANGAN
      ============================================================ -->
-<div id="mainPage" class="hidden min-h-screen">
+<div id="mainPage" class="hidden min-h-screen flex flex-col">
 
   <!-- HEADER -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-      <span class="text-lg font-bold tracking-tight text-slate-800 shrink-0">TRINITRIX</span>
+    <div class="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
+      <span class="text-base font-bold tracking-tight text-green-600 shrink-0">TRINITRIX</span>
 
       <!-- Search -->
-      <div class="relative flex-1 max-w-xs">
-        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
-        <input id="globalSearch" type="text" placeholder="Cari..."
+      <div class="relative flex-1">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input id="globalSearch" type="text" placeholder="Cari ruangan atau form..."
                autocomplete="off"
-               class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-slate-50 transition" />
+               class="w-full border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-slate-50 transition" />
         <div id="searchDrop"
              class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 max-h-72 overflow-y-auto">
         </div>
       </div>
 
-      <button onclick="logout()"
-              class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1.5 shrink-0">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Logout -->
+      <button onclick="logout()" class="shrink-0 text-slate-400 hover:text-red-500 transition p-1.5 rounded-xl hover:bg-red-50" title="Keluar">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
         </svg>
-        Keluar
       </button>
     </div>
   </header>
 
   <!-- CONTENT -->
-  <main class="max-w-3xl mx-auto px-4 py-5 pb-10">
+  <main class="flex-1 max-w-2xl w-full mx-auto px-4 py-4 pb-10">
 
     <!-- Skeleton -->
-    <div id="roomSkeleton" class="space-y-3">
-      <div class="skeleton h-14 rounded-2xl"></div>
-      <div class="skeleton h-14 rounded-2xl"></div>
-      <div class="skeleton h-14 rounded-2xl"></div>
-      <div class="skeleton h-14 rounded-2xl"></div>
-      <div class="skeleton h-14 rounded-2xl"></div>
+    <div id="roomSkeleton" class="space-y-2">
+      <div class="skeleton h-14"></div>
+      <div class="skeleton h-14"></div>
+      <div class="skeleton h-14"></div>
+      <div class="skeleton h-14"></div>
+      <div class="skeleton h-14"></div>
+      <div class="skeleton h-14"></div>
     </div>
 
     <!-- Daftar ruangan -->
-    <div id="roomList" class="hidden space-y-3"></div>
+    <div id="roomList" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100"></div>
 
     <!-- Empty state -->
     <div id="emptyState" class="hidden bg-white rounded-2xl border border-slate-200 p-10 text-center text-slate-400 text-sm">
-      Belum ada kategori. Hubungi admin untuk menambahkan data.
+      Belum ada kategori.
     </div>
 
     <!-- Error state -->
@@ -152,9 +157,32 @@
   </main>
 </div>
 
+<!-- ============================================================
+     PANEL DOKUMEN (slide dari kanan)
+     ============================================================ -->
+<div id="docPanel" class="fixed inset-0 z-40 bg-white flex flex-col">
+  <!-- Panel header -->
+  <div class="bg-white border-b border-slate-200 px-4 h-14 flex items-center gap-3 shrink-0 shadow-sm">
+    <button onclick="closeDocPanel()"
+            class="text-slate-500 hover:text-slate-800 transition p-1.5 rounded-xl hover:bg-slate-100 -ml-1 shrink-0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div class="min-w-0">
+      <div id="panelRoomName" class="font-semibold text-slate-800 text-sm truncate"></div>
+      <div id="panelFormCount" class="text-xs text-slate-400"></div>
+    </div>
+  </div>
+
+  <!-- Panel body -->
+  <div id="panelBody" class="flex-1 overflow-y-auto px-4 py-3 space-y-2 max-w-2xl w-full mx-auto">
+  </div>
+</div>
+
 <script>
-  const SUPABASE_URL  = 'https://unzbfqobkrfzdsiahbju.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVuemJmcW9ia3JmemRzaWFoYmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NjU1NTksImV4cCI6MjA5NjU0MTU1OX0.cxkJbokUdsmRyQGNS4xDRNx7XUf319PXlzOLdzfC0kM';
+  const SUPABASE_URL  = 'GANTI_DENGAN_SUPABASE_URL_KAMU';
+  const SUPABASE_ANON = 'GANTI_DENGAN_SUPABASE_ANON_KEY_KAMU';
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   let ROOMS = [];
@@ -198,6 +226,7 @@
     document.getElementById('loginPage').classList.remove('hidden');
     document.getElementById('loginUser').value = '';
     document.getElementById('loginPass').value = '';
+    closeDocPanel();
   }
 
   // ── Show main page ──
@@ -211,22 +240,21 @@
   async function loadRooms() {
     try {
       const [rRes, dRes] = await Promise.all([
-        _supa.from('rooms').select('id,name,description').order('name', { ascending: true }),
+        _supa.from('rooms').select('id,name,description,sort_order').order('sort_order', { ascending: true }),
         _supa.from('documents').select('id,room_id,title,url,category,sort_order')
-             .eq('category','form').order('sort_order', { ascending: true })
+             .order('sort_order', { ascending: true })
       ]);
-
       if (rRes.error) throw rRes.error;
       if (dRes.error) throw dRes.error;
 
       ROOMS = (rRes.data || []).map(r => ({
         ...r,
-        documents: (dRes.data || []).filter(d => d.room_id === r.id)
+        documents: (dRes.data || [])
+          .filter(d => d.room_id === r.id)
           .sort((a, b) => (a.sort_order||0) - (b.sort_order||0))
       }));
 
       renderRoomList();
-
     } catch (err) {
       document.getElementById('roomSkeleton').classList.add('hidden');
       document.getElementById('errorState').classList.remove('hidden');
@@ -235,18 +263,18 @@
 
   // ── Render list ruangan ──
   function renderRoomList(filter = '') {
-    const q = filter.toLowerCase().trim();
-    const list = document.getElementById('roomList');
+    const q       = filter.toLowerCase().trim();
+    const list    = document.getElementById('roomList');
     const skeleton = document.getElementById('roomSkeleton');
-    const empty = document.getElementById('emptyState');
+    const empty   = document.getElementById('emptyState');
 
     skeleton.classList.add('hidden');
 
-    const filtered = ROOMS.filter(r => {
-      if (!q) return true;
-      return r.name.toLowerCase().includes(q) ||
-             r.documents.some(d => d.title.toLowerCase().includes(q));
-    });
+    const filtered = ROOMS.filter(r =>
+      !q ||
+      r.name.toLowerCase().includes(q) ||
+      r.documents.some(d => d.title.toLowerCase().includes(q))
+    );
 
     if (filtered.length === 0) {
       list.classList.add('hidden');
@@ -259,79 +287,102 @@
     list.classList.remove('hidden');
 
     list.innerHTML = filtered.map(room => {
-      const formCount = room.documents.length;
-      // highlight search di nama
-      const displayName = q ? highlight(room.name, q) : esc(room.name);
+      const formDocs  = room.documents.filter(d => d.category === 'form');
+      const excelDocs = room.documents.filter(d => d.category === 'excel');
+      const total     = formDocs.length + excelDocs.length;
+      const nameHtml  = q ? highlight(room.name, q) : esc(room.name);
 
       return `
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <!-- Header ruangan (klik untuk expand) -->
-          <button type="button" onclick="toggleRoom('${room.id}')"
-                  class="w-full flex items-center justify-between px-4 py-4 hover:bg-slate-50 transition text-left gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <div class="font-semibold text-slate-800 text-sm truncate">${displayName}</div>
-                <div class="text-xs text-slate-400 mt-0.5">${formCount} form</div>
-              </div>
-            </div>
-            <svg id="chevron-${room.id}" class="chevron w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        <button type="button" onclick="openDocPanel('${room.id}')"
+                class="room-item w-full flex items-center gap-3 px-4 py-3.5 text-left transition hover:bg-slate-50 active:bg-green-50">
+          <div class="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
             </svg>
-          </button>
-
-          <!-- List form (tersembunyi default) -->
-          <div id="forms-${room.id}" class="room-forms max-h-0 opacity-0">
-            ${formCount === 0
-              ? `<div class="px-4 pb-4 text-xs text-slate-400 italic">Belum ada form di kategori ini.</div>`
-              : `<div class="px-3 pb-3 space-y-2 border-t border-slate-100 pt-3">` +
-                room.documents.map(doc => {
-                  const titleDisplay = q ? highlight(doc.title, q) : esc(doc.title);
-                  return `
-                    <a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer"
-                       class="flex items-center gap-3 px-3 py-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition group active:scale-[0.98]">
-                      <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                      </div>
-                      <span class="text-sm font-medium text-slate-700 group-hover:text-blue-700 transition leading-snug">${titleDisplay}</span>
-                      <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 transition ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                      </svg>
-                    </a>`;
-                }).join('') +
-                `</div>`
-            }
           </div>
-        </div>`;
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-slate-800 text-sm">${nameHtml}</div>
+            <div class="text-xs text-slate-400 mt-0.5">${total} dokumen</div>
+          </div>
+          <svg class="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>`;
     }).join('');
   }
 
-  // ── Toggle expand ruangan ──
-  const openRooms = new Set();
+  // ── Buka panel dokumen ──
+  function openDocPanel(roomId) {
+    const room = ROOMS.find(r => r.id === roomId);
+    if (!room) return;
 
-  function toggleRoom(roomId) {
-    const forms   = document.getElementById('forms-' + roomId);
-    const chevron = document.getElementById('chevron-' + roomId);
-    if (!forms) return;
+    const formDocs  = room.documents.filter(d => d.category === 'form');
+    const excelDocs = room.documents.filter(d => d.category === 'excel');
+    const total     = formDocs.length + excelDocs.length;
 
-    if (openRooms.has(roomId)) {
-      forms.style.maxHeight = '0';
-      forms.style.opacity   = '0';
-      chevron.classList.remove('open');
-      openRooms.delete(roomId);
-    } else {
-      forms.style.maxHeight = forms.scrollHeight + 'px';
-      forms.style.opacity   = '1';
-      chevron.classList.add('open');
-      openRooms.add(roomId);
+    document.getElementById('panelRoomName').textContent  = room.name;
+    document.getElementById('panelFormCount').textContent = `${total} dokumen`;
+
+    let html = '';
+
+    // Excel / data hasil pengukuran dulu
+    if (excelDocs.length > 0) {
+      html += `<div class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 pt-2 pb-1">Data Hasil</div>`;
+      html += excelDocs.map(doc => docItemHtml(doc, 'excel')).join('');
     }
+
+    // Form
+    if (formDocs.length > 0) {
+      html += `<div class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-1 pt-3 pb-1">Form Pengisian</div>`;
+      html += formDocs.map(doc => docItemHtml(doc, 'form')).join('');
+    }
+
+    if (total === 0) {
+      html = `<div class="text-sm text-slate-400 text-center py-10 italic">Belum ada dokumen di kategori ini.</div>`;
+    }
+
+    document.getElementById('panelBody').innerHTML = html;
+    document.getElementById('docPanel').classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
+
+  function docItemHtml(doc, type) {
+    const isExcel = type === 'excel';
+    const iconColor  = isExcel ? 'bg-emerald-100' : 'bg-green-100';
+    const iconStroke = isExcel ? 'text-emerald-600' : 'text-green-600';
+    const icon = isExcel
+      ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>`
+      : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>`;
+
+    return `
+      <a href="${esc(doc.url)}" target="_blank" rel="noopener noreferrer"
+         class="doc-item flex items-center gap-3 px-3 py-3.5 rounded-xl border border-slate-100 bg-white hover:border-green-200 hover:bg-green-50 transition active:scale-[0.98] active:bg-green-50">
+        <div class="w-8 h-8 rounded-lg ${iconColor} flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 ${iconStroke}" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg>
+        </div>
+        <span class="flex-1 text-sm font-medium text-slate-700 leading-snug">${esc(doc.title)}</span>
+        <svg class="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+      </a>`;
+  }
+
+  // ── Tutup panel dokumen ──
+  function closeDocPanel() {
+    document.getElementById('docPanel').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Tutup panel dengan swipe kanan (mobile)
+  (function () {
+    const panel = document.getElementById('docPanel');
+    let startX = 0;
+    panel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+    panel.addEventListener('touchend', e => {
+      if (e.changedTouches[0].clientX - startX > 80) closeDocPanel();
+    }, { passive: true });
+  })();
 
   // ── Search ──
   (function () {
@@ -343,7 +394,6 @@
       const q = norm(this.value);
       if (!q) { drop.classList.add('hidden'); renderRoomList(''); return; }
 
-      // Tampilkan hasil di dropdown
       const results = [];
       ROOMS.forEach(room => {
         room.documents.forEach(doc => {
@@ -358,7 +408,7 @@
       } else {
         drop.innerHTML = results.slice(0, 10).map(r => `
           <a href="${esc(r.doc.url)}" target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0">
+             class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 active:bg-green-50">
             <div class="min-w-0 flex-1">
               <div class="text-sm font-medium text-slate-700 truncate">${highlight(r.doc.title, q)}</div>
               <div class="text-xs text-slate-400 truncate">${esc(r.room.name)}</div>
@@ -379,7 +429,14 @@
     });
   })();
 
-  // ── Highlight text ──
+  // ── Escape back button di Android ──
+  window.addEventListener('popstate', () => {
+    const panel = document.getElementById('docPanel');
+    if (panel.classList.contains('open')) { closeDocPanel(); history.pushState(null, ''); }
+  });
+  history.pushState(null, '');
+
+  // ── Highlight ──
   function highlight(text, q) {
     if (!q) return esc(text);
     const lower = text.toLowerCase();
