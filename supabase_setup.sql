@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
   display_name text        NOT NULL DEFAULT '',
   created_at   timestamptz NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS admin_users_email_lower_idx ON public.admin_users (lower(email));
 
 
 -- ================================================================
@@ -107,35 +108,56 @@ DECLARE
   new_user_id  uuid;
   encrypted_pw text;
 BEGIN
+  user_email   := lower(user_email);
   new_user_id  := gen_random_uuid();
   encrypted_pw := crypt(user_password, gen_salt('bf', 10));
 
   INSERT INTO auth.users (
+    instance_id,
     id,
+    aud,
+    role,
     email,
     encrypted_password,
     email_confirmed_at,
     confirmation_sent_at,
+    confirmation_token,
+    recovery_token,
+    email_change_token_new,
+    email_change_token_current,
+    email_change,
+    phone_change,
+    phone_change_token,
+    reauthentication_token,
     raw_app_meta_data,
     raw_user_meta_data,
+    is_sso_user,
+    is_anonymous,
     created_at,
-    updated_at,
-    instance_id,
-    aud,
-    role
+    updated_at
   ) VALUES (
+    '00000000-0000-0000-0000-000000000000',
     new_user_id,
+    'authenticated',
+    'authenticated',
     user_email,
     encrypted_pw,
     now(),
     now(),
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
     '{"provider":"email","providers":["email"]}',
     '{}',
+    false,
+    false,
     now(),
-    now(),
-    '00000000-0000-0000-0000-000000000000',
-    'authenticated',
-    'authenticated'
+    now()
   );
 
   INSERT INTO auth.identities (
@@ -150,9 +172,9 @@ BEGIN
   ) VALUES (
     gen_random_uuid(),
     new_user_id,
-    jsonb_build_object('sub', new_user_id::text, 'email', user_email),
+    jsonb_build_object('sub', new_user_id::text, 'email', user_email, 'email_verified', true, 'phone_verified', false),
     'email',
-    user_email,
+    new_user_id::text,
     now(),
     now(),
     now()

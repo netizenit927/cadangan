@@ -495,8 +495,10 @@
 </div>
 
 <script>
-  const SUPABASE_URL  = 'https://spgffzeywqzsoqzawwjb.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwZ2ZmemV5d3F6c29xemF3d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0Mzg2MTAsImV4cCI6MjA5ODAxNDYxMH0.YzyeqL-ELDo5hn1XjRpV_6f0VrhnyxEkX1WdiuOsxf0';
+  // const SUPABASE_URL  = 'https://spgffzeywqzsoqzawwjb.supabase.co';
+  // const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwZ2ZmemV5d3F6c29xemF3d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0Mzg2MTAsImV4cCI6MjA5ODAxNDYxMH0.YzyeqL-ELDo5hn1XjRpV_6f0VrhnyxEkX1WdiuOsxf0';
+  const SUPABASE_URL  = 'https://pvmcaqsjcnwmdhanvxat.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_CpFsjTizXWj1p1_4yYkPzA_SrosPdky';
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   let currentPage = 'rooms';
@@ -514,14 +516,14 @@
   }
 
   async function verifyAdmin(email) {
-    const { data, error } = await _supa.from('admin_users').select('id,email,display_name').eq('email', email).limit(1);
+    const { data, error } = await _supa.from('admin_users').select('id,email,display_name').ilike('email', email).limit(1);
     if (error || !data || data.length === 0) return null;
     return data[0];
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginUser').value.trim();
+    const email = document.getElementById('loginUser').value.trim().toLowerCase();
     const password = document.getElementById('loginPass').value;
     const errBox = document.getElementById('loginError');
     const btn = document.getElementById('loginBtn');
@@ -801,7 +803,7 @@
   document.getElementById('adminSearch').addEventListener('input', function() { renderRoomList(this.value); });
 
   async function createUser() {
-    const email   = document.getElementById('newUserEmail').value.trim();
+    const email   = document.getElementById('newUserEmail').value.trim().toLowerCase();
     const pass    = document.getElementById('newUserPass').value;
     const isAdmin = document.getElementById('newUserIsAdmin').checked;
     if (!email) { showToast('Email tidak boleh kosong', 'error'); return; }
@@ -951,14 +953,15 @@
   }
 
   async function grantAdminRole(email, makeAdmin) {
+    const emailLower = email.toLowerCase().trim();
     if (makeAdmin) {
-      const { error } = await _supa.from('admin_users').insert({ email });
+      const { error } = await _supa.from('admin_users').insert({ email: emailLower });
       if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-      showToast(`${email} sekarang jadi admin`);
+      showToast(`${emailLower} sekarang jadi admin`);
     } else {
-      const { error } = await _supa.from('admin_users').delete().eq('email', email);
+      const { error } = await _supa.from('admin_users').delete().ilike('email', emailLower);
       if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
-      showToast(`Akses admin ${email} dicabut`);
+      showToast(`Akses admin ${emailLower} dicabut`);
     }
     await loadAllUsers();
   }

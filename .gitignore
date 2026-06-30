@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Vercel
+.vercel
+
+# Test artifacts
+.playwright-mcp/
+
+# Logs
+*.log

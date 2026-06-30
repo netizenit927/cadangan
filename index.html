@@ -181,8 +181,10 @@
 </div>
 
 <script>
-  const SUPABASE_URL  = 'https://spgffzeywqzsoqzawwjb.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwZ2ZmemV5d3F6c29xemF3d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0Mzg2MTAsImV4cCI6MjA5ODAxNDYxMH0.YzyeqL-ELDo5hn1XjRpV_6f0VrhnyxEkX1WdiuOsxf0';
+  // const SUPABASE_URL  = 'https://spgffzeywqzsoqzawwjb.supabase.co';
+  // const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwZ2ZmemV5d3F6c29xemF3d2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0Mzg2MTAsImV4cCI6MjA5ODAxNDYxMH0.YzyeqL-ELDo5hn1XjRpV_6f0VrhnyxEkX1WdiuOsxf0';
+  const SUPABASE_URL  = 'https://pvmcaqsjcnwmdhanvxat.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_CpFsjTizXWj1p1_4yYkPzA_SrosPdky';
   const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   let ROOMS = [];
@@ -196,7 +198,7 @@
   // ── Login ──
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email    = document.getElementById('loginUser').value.trim();
+    const email    = document.getElementById('loginUser').value.trim().toLowerCase();
     const password = document.getElementById('loginPass').value;
     const errBox   = document.getElementById('loginError');
     const btn      = document.getElementById('loginBtn');
